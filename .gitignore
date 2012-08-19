@@ -1,3 +1,6 @@
+# Generated C file.
+quaternion/__init__.c
+
 *.py[co]
 
 # Packages
