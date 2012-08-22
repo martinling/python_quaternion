@@ -9,7 +9,7 @@ Released under a BSD-style license (see LICENSE.txt)
 This Python module provides a Quaternion type that provides easy access to
 fast quaternion math operations implemented in C.
 
-It is designed as a standalone alternative to two previous quaternion math
+It is designed as a standalone alternative to two other Python quaternion math
 implementations that I have contributed to previously: firstly that in the
 IMUSim package (http://www.imusim.org/), and secondly one designed to
 integrate into NumPy (http://github.com/martinling/numpy_quaternion/). While
