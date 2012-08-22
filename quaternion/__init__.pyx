@@ -193,7 +193,8 @@ cdef class Quaternion:
             result._value = quaternion_subtract_scalar(qa._value, sb)
         elif isinstance(b, Quaternion):
             sa, qb = a, b
-            result._value = quaternion_subtract_scalar(qb._value, sa)
+            result._value = quaternion_add_scalar(
+                quaternion_negative(qb._value), sa)
         else:
             return NotImplemented
         return result
