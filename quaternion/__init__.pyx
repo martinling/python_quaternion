@@ -247,8 +247,8 @@ cdef class Quaternion:
             qa, sb = a, b
             result._value = quaternion_power_scalar(qa._value, sb)
         elif isinstance(b, Quaternion):
-            sa, qb = a, b
-            result._value = quaternion_power_scalar(qb._value, sa)
+            qa, qb = Quaternion(a, 0, 0, 0), b
+            result._value = quaternion_power(qa._value, qb._value)
         else:
             return NotImplemented
         return result
