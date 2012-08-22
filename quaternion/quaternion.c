@@ -152,7 +152,7 @@ quaternion_add(quaternion q1, quaternion q2)
 quaternion
 quaternion_add_scalar(quaternion q, double s)
 {
-   return (quaternion) {q.w+s, q.x+s, q.y+s, q.z+s};
+   return (quaternion) {q.w+s, q.x, q.y, q.z};
 }
 
 quaternion
@@ -169,7 +169,7 @@ quaternion_subtract(quaternion q1, quaternion q2)
 quaternion
 quaternion_subtract_scalar(quaternion q, double s)
 {
-   return (quaternion) {q.w-s, q.x-s, q.y-s, q.z-s};
+   return (quaternion) {q.w-s, q.x, q.y, q.z};
 }
 
 quaternion
