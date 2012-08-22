@@ -46,39 +46,33 @@ typedef struct {
 	double z;
 } quaternion;
 
-typedef struct {
-	double x;
-	double y;
-	double z;
-} vector;
-
-int quaternion_isnonzero(quaternion q);
-int quaternion_isnan(quaternion q);
-int quaternion_isinf(quaternion q);
-int quaternion_isfinite(quaternion q);
-int quaternion_equal(quaternion q1, quaternion q2);
-int quaternion_not_equal(quaternion q1, quaternion q2);
-int quaternion_less(quaternion q1, quaternion q2);
-int quaternion_less_equal(quaternion q1, quaternion q2);
-double quaternion_magnitude(quaternion q);
-double quaternion_dot(quaternion q1, quaternion q2);
-quaternion quaternion_negative(quaternion q);
-quaternion quaternion_conjugate(quaternion q);
-quaternion quaternion_add(quaternion q1, quaternion q2);
-quaternion quaternion_add_scalar(quaternion q, double s);
-quaternion quaternion_subtract(quaternion q1, quaternion q2);
-quaternion quaternion_subtract_scalar(quaternion q, double s);
-quaternion quaternion_multiply(quaternion q1, quaternion q2);
-quaternion quaternion_multiply_scalar(quaternion q, double s);
-quaternion quaternion_divide(quaternion q1, quaternion q2);
-quaternion quaternion_divide_scalar(quaternion q, double s);
-quaternion quaternion_log(quaternion q);
-quaternion quaternion_exp(quaternion q);
-quaternion quaternion_power(quaternion q, quaternion p);
-quaternion quaternion_power_scalar(quaternion q, double p);
-quaternion quaternion_copysign(quaternion q1, quaternion q2);
-vector quaternion_rotate_vector(quaternion q, vector v);
-vector quaternion_rotate_frame(quaternion q, vector v);
+int quaternion_isnonzero(const quaternion *q);
+int quaternion_isnan(const quaternion *q);
+int quaternion_isinf(const quaternion *q);
+int quaternion_isfinite(const quaternion *q);
+int quaternion_equal(const quaternion *q1, const quaternion *q2);
+int quaternion_not_equal(const quaternion *q1, const quaternion *q2);
+int quaternion_less(const quaternion *q1, const quaternion *q2);
+int quaternion_less_equal(const quaternion *q1, const quaternion *q2);
+double quaternion_magnitude(const quaternion *q);
+double quaternion_dot(const quaternion *q1, const quaternion *q2);
+void quaternion_negative(const quaternion *q, quaternion *r);
+void quaternion_conjugate(const quaternion *q, quaternion *r);
+void quaternion_copysign(const quaternion *q1, const quaternion *q2, quaternion *r);
+void quaternion_add(const quaternion *q1, const quaternion *q2, quaternion *r);
+void quaternion_add_scalar(const quaternion *q, double s, quaternion *r);
+void quaternion_subtract(const quaternion *q1, const quaternion *q2, quaternion *r);
+void quaternion_subtract_scalar(const quaternion *q, double s, quaternion *r);
+void quaternion_multiply(const quaternion *q1, const quaternion *q2, quaternion *r);
+void quaternion_multiply_scalar(const quaternion *q, double s, quaternion *r);
+void quaternion_divide(const quaternion *q1, const quaternion *q2, quaternion *r);
+void quaternion_divide_scalar(const quaternion *q, double s, quaternion *r);
+void quaternion_log(const quaternion *q, quaternion *r);
+void quaternion_exp(const quaternion *q, quaternion *r);
+void quaternion_power(const quaternion *q1, const quaternion *q2, quaternion *r);
+void quaternion_power_scalar(const quaternion *q, double s, quaternion *r);
+void quaternion_rotate_vector(const quaternion *q, const double v[3], double r[3]);
+void quaternion_rotate_frame(const quaternion *q, const double v[3], double r[3]);
 
 #ifdef __cplusplus
 }

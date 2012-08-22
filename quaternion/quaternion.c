@@ -4,7 +4,7 @@
  * Copyright (c) 2011-2012 Martin Ling <martin@earth.li>
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -38,238 +38,260 @@
 #define _QUAT_EPS 1e-6
 
 int
-quaternion_isnonzero(quaternion q)
+quaternion_isnonzero(const quaternion *q)
 {
-    return q.w != 0 && q.x != 0 && q.y != 0 && q.z != 0;
+    return q->w != 0 && q->x != 0 && q->y != 0 && q->z != 0;
 }
 
 int
-quaternion_isnan(quaternion q)
+quaternion_isnan(const quaternion *q)
 {
-    return isnan(q.w) || isnan(q.x) || isnan(q.y) || isnan(q.z);
+    return isnan(q->w) || isnan(q->x) || isnan(q->y) || isnan(q->z);
 }
 
 int
-quaternion_isinf(quaternion q)
+quaternion_isinf(const quaternion *q)
 {
-    return isinf(q.w) || isinf(q.x) || isinf(q.y) || isnan(q.z);
+    return isinf(q->w) || isinf(q->x) || isinf(q->y) || isnan(q->z);
 }
 
 int
-quaternion_isfinite(quaternion q)
+quaternion_isfinite(const quaternion *q)
 {
-    return isfinite(q.w) && isfinite(q.x) && isfinite(q.y) && isfinite(q.z);
+    return isfinite(q->w) && isfinite(q->x) && isfinite(q->y) && isfinite(q->z);
 }
 
 int
-quaternion_equal(quaternion q1, quaternion q2)
+quaternion_equal(const quaternion *q1, const quaternion *q2)
 {
-    return 
+    return
         !quaternion_isnan(q1) &&
         !quaternion_isnan(q2) &&
-        q1.w == q2.w && 
-        q1.x == q2.x && 
-        q1.y == q2.y && 
-        q1.z == q2.z;
+        q1->w == q2->w &&
+        q1->x == q2->x &&
+        q1->y == q2->y &&
+        q1->z == q2->z;
 }
 
 int
-quaternion_not_equal(quaternion q1, quaternion q2)
+quaternion_not_equal(const quaternion *q1, const quaternion *q2)
 {
     return !quaternion_equal(q1, q2);
 }
 
 int
-quaternion_less(quaternion q1, quaternion q2)
+quaternion_less(const quaternion *q1, const quaternion *q2)
 {
     return
         (!quaternion_isnan(q1) &&
         !quaternion_isnan(q2)) && (
-            q1.w != q2.w ? q1.w < q2.w :
-            q1.x != q2.x ? q1.x < q2.x :
-            q1.y != q2.y ? q1.y < q2.y :
-            q1.z != q2.z ? q1.z < q2.z : 0);
+            q1->w != q2->w ? q1->w < q2->w :
+            q1->x != q2->x ? q1->x < q2->x :
+            q1->y != q2->y ? q1->y < q2->y :
+            q1->z != q2->z ? q1->z < q2->z : 0);
 }
 
 int
-quaternion_less_equal(quaternion q1, quaternion q2)
+quaternion_less_equal(const quaternion *q1, const quaternion *q2)
 {
    return
         (!quaternion_isnan(q1) &&
         !quaternion_isnan(q2)) && (
-            q1.w != q2.w ? q1.w < q2.w :
-            q1.x != q2.x ? q1.x < q2.x :
-            q1.y != q2.y ? q1.y < q2.y :
-            q1.z != q2.z ? q1.z < q2.z : 1);
+            q1->w != q2->w ? q1->w < q2->w :
+            q1->x != q2->x ? q1->x < q2->x :
+            q1->y != q2->y ? q1->y < q2->y :
+            q1->z != q2->z ? q1->z < q2->z : 1);
 }
 
 double
-quaternion_magnitude(quaternion q)
+quaternion_magnitude(const quaternion *q)
 {
-   return sqrt(q.w*q.w + q.x*q.x + q.y*q.y + q.z*q.z);
+   return sqrt(q->w*q->w + q->x*q->x + q->y*q->y + q->z*q->z);
 }
 
 double
-quaternion_dot(quaternion q1, quaternion q2)
+quaternion_dot(const quaternion *q1, const quaternion *q2)
 {
-   return q1.w*q2.w + q1.x*q2.x + q1.y*q2.y + q1.z*q2.z;
+   return q1->w*q2->w + q1->x*q2->x + q1->y*q2->y + q1->z*q2->z;
 }
 
-quaternion
-quaternion_negative(quaternion q)
+void
+quaternion_negative(const quaternion *q, quaternion *r)
 {
-   return (quaternion) {-q.w, -q.x, -q.y, -q.z};
+   r->w = -q->w,
+   r->x = -q->x,
+   r->y = -q->y,
+   r->z = -q->z;
 }
 
-quaternion
-quaternion_conjugate(quaternion q)
+void
+quaternion_conjugate(const quaternion *q, quaternion *r)
 {
-   return (quaternion) {q.w, -q.x, -q.y, -q.z};
+   r->w = q->w,
+   r->x = -q->x,
+   r->y = -q->y,
+   r->z = -q->z;
 }
 
-quaternion
-quaternion_copysign(quaternion q1, quaternion q2)
+void
+quaternion_copysign(const quaternion *q1, const quaternion *q2, quaternion *r)
 {
-    return (quaternion) {
-        copysign(q1.w, q2.w),
-        copysign(q1.x, q2.x),
-        copysign(q1.y, q2.y),
-        copysign(q1.z, q2.z)
-    };
+   r->w = copysign(q1->w, q2->w),
+   r->x = copysign(q1->x, q2->x),
+   r->y = copysign(q1->y, q2->y),
+   r->z = copysign(q1->z, q2->z);
 }
 
-quaternion
-quaternion_add(quaternion q1, quaternion q2)
+void
+quaternion_add(const quaternion *q1, const quaternion *q2, quaternion *r)
 {
-   return (quaternion) {
-      q1.w+q2.w,
-      q1.x+q2.x,
-      q1.y+q2.y,
-      q1.z+q2.z,
-   };
+   r->w = q1->w+q2->w,
+   r->x = q1->x+q2->x,
+   r->y = q1->y+q2->y,
+   r->z = q1->z+q2->z;
 }
 
-quaternion
-quaternion_add_scalar(quaternion q, double s)
+void
+quaternion_add_scalar(const quaternion *q, double s, quaternion *r)
 {
-   return (quaternion) {q.w+s, q.x, q.y, q.z};
+   r->w = q->w+s,
+   r->x = q->x,
+   r->y = q->y,
+   r->z = q->z;
 }
 
-quaternion
-quaternion_subtract(quaternion q1, quaternion q2)
+void
+quaternion_subtract(const quaternion *q1, const quaternion *q2, quaternion *r)
 {
-   return (quaternion) {
-      q1.w-q2.w,
-      q1.x-q2.x,
-      q1.y-q2.y,
-      q1.z-q2.z,
-   };
+   r->w = q1->w-q2->w,
+   r->x = q1->x-q2->x,
+   r->y = q1->y-q2->y,
+   r->z = q1->z-q2->z;
 }
 
-quaternion
-quaternion_subtract_scalar(quaternion q, double s)
+void
+quaternion_subtract_scalar(const quaternion *q, double s, quaternion *r)
 {
-   return (quaternion) {q.w-s, q.x, q.y, q.z};
+   r->w = q->w-s,
+   r->x = q->x,
+   r->y = q->y,
+   r->z = q->z;
 }
 
-quaternion
-quaternion_multiply(quaternion q1, quaternion q2)
+void
+quaternion_multiply(const quaternion *q1, const quaternion *q2, quaternion *r)
 {
-   return (quaternion) {
-      q1.w*q2.w - q1.x*q2.x - q1.y*q2.y - q1.z*q2.z,
-      q1.w*q2.x + q1.x*q2.w + q1.y*q2.z - q1.z*q2.y,
-      q1.w*q2.y - q1.x*q2.z + q1.y*q2.w + q1.z*q2.x,
-      q1.w*q2.z + q1.x*q2.y - q1.y*q2.x + q1.z*q2.w,
-   };
+   r->w = q1->w*q2->w - q1->x*q2->x - q1->y*q2->y - q1->z*q2->z,
+   r->x = q1->w*q2->x + q1->x*q2->w + q1->y*q2->z - q1->z*q2->y,
+   r->y = q1->w*q2->y - q1->x*q2->z + q1->y*q2->w + q1->z*q2->x,
+   r->z = q1->w*q2->z + q1->x*q2->y - q1->y*q2->x + q1->z*q2->w;
 }
 
-quaternion
-quaternion_multiply_scalar(quaternion q, double s)
+void
+quaternion_multiply_scalar(const quaternion *q, double s, quaternion *r)
 {
-   return (quaternion) {s*q.w, s*q.x, s*q.y, s*q.z};
+   r->w = s*q->w,
+   r->x = s*q->x,
+   r->y = s*q->y,
+   r->z = s*q->z;
 }
 
-quaternion
-quaternion_divide(quaternion q1, quaternion q2)
+void
+quaternion_divide(const quaternion *q1, const quaternion *q2, quaternion *r)
 {
-   double s = q2.w*q2.w + q2.x*q2.x + q2.y*q2.y + q2.z*q2.z;
-   return (quaternion) {
-      (  q1.w*q2.w + q1.x*q2.x + q1.y*q2.y + q1.z*q2.z) / s,
-      (- q1.w*q2.x + q1.x*q2.w + q1.y*q2.z - q1.z*q2.y) / s,
-      (- q1.w*q2.y - q1.x*q2.z + q1.y*q2.w + q1.z*q2.x) / s,
-      (- q1.w*q2.z + q1.x*q2.y - q1.y*q2.x + q1.z*q2.w) / s
-   };
+   double s = q2->w*q2->w + q2->x*q2->x + q2->y*q2->y + q2->z*q2->z;
+   r->w = (  q1->w*q2->w + q1->x*q2->x + q1->y*q2->y + q1->z*q2->z) / s,
+   r->x = (- q1->w*q2->x + q1->x*q2->w + q1->y*q2->z - q1->z*q2->y) / s,
+   r->y = (- q1->w*q2->y - q1->x*q2->z + q1->y*q2->w + q1->z*q2->x) / s,
+   r->z = (- q1->w*q2->z + q1->x*q2->y - q1->y*q2->x + q1->z*q2->w) / s;
 }
 
-quaternion
-quaternion_divide_scalar(quaternion q, double s)
+void
+quaternion_divide_scalar(const quaternion *q, double s, quaternion *r)
 {
-   return (quaternion) {q.w/s, q.x/s, q.y/s, q.z/s};
+   r->w = q->w/s,
+   r->x = q->x/s,
+   r->y = q->y/s,
+   r->z = q->z/s;
 }
 
-quaternion
-quaternion_log(quaternion q)
+void
+quaternion_log(const quaternion *q, quaternion *r)
 {
-   double sumvsq = q.x*q.x + q.y*q.y + q.z*q.z;
+   double sumvsq = q->x*q->x + q->y*q->y + q->z*q->z;
    double vnorm = sqrt(sumvsq);
    if (vnorm > _QUAT_EPS) {
-      double m = sqrt(q.w*q.w + sumvsq);
-      double s = acos(q.w/m) / vnorm;
-      return (quaternion) {log(m), s*q.x, s*q.y, s*q.z};
+      double m = sqrt(q->w*q->w + sumvsq);
+      double s = acos(q->w/m) / vnorm;
+      r->w = log(m),
+      r->x = s*q->x,
+      r->y = s*q->y,
+      r->z = s*q->z;
    } else {
-      return (quaternion) {0, 0, 0, 0};
+      r->w = 0,
+      r->x = 0,
+      r->y = 0,
+      r->z = 0;
    }
 }
 
-quaternion
-quaternion_exp(quaternion q)
+void
+quaternion_exp(const quaternion *q, quaternion *r)
 {
-   double vnorm = sqrt(q.x*q.x + q.y*q.y + q.z*q.z);
+   double vnorm = sqrt(q->x*q->x + q->y*q->y + q->z*q->z);
    if (vnorm > _QUAT_EPS) {
       double s = sin(vnorm) / vnorm;
-      double e = exp(q.w);
-      return (quaternion) {e*cos(vnorm), e*s*q.x, e*s*q.y, e*s*q.z};
+      double e = exp(q->w);
+      r->w = e*cos(vnorm),
+      r->x = e*s*q->x,
+      r->y = e*s*q->y,
+      r->z = e*s*q->z;
    } else {
-      return (quaternion) {exp(q.w), 0, 0, 0};
+      r->w = exp(q->w),
+      r->x = 0,
+      r->y = 0,
+      r->z = 0;
    }
 }
 
-quaternion
-quaternion_power(quaternion q, quaternion p)
+void
+quaternion_power(const quaternion *q1, const quaternion *q2, quaternion *r)
 {
-   return quaternion_exp(quaternion_multiply(quaternion_log(q), p));
+   quaternion_log(q1, r);
+   quaternion_multiply(r, q2, r);
+   quaternion_exp(r, r);
 }
 
-quaternion
-quaternion_power_scalar(quaternion q, double s)
+void
+quaternion_power_scalar(const quaternion *q, double s, quaternion *r)
 {
-   return quaternion_exp(quaternion_multiply_scalar(quaternion_log(q), s));
+   quaternion_log(q, r);
+   quaternion_multiply_scalar(r, s, r);
+   quaternion_exp(r, r);
 }
 
-vector
-quaternion_rotate_vector(quaternion q, vector v)
+void
+quaternion_rotate_vector(const quaternion *q, const double v[3], double r[3])
 {
-   double W = q.x * v.x + q.y * v.y + q.z * v.z;
-   double X = q.w * v.x + q.y * v.z - q.z * v.y;
-   double Y = q.w * v.y - q.x * v.z + q.z * v.x;
-   double Z = q.w * v.z + q.x * v.y - q.y * v.x;
+   double W = q->x * v[0] + q->y * v[1] + q->z * v[2];
+   double X = q->w * v[0] + q->y * v[2] - q->z * v[1];
+   double Y = q->w * v[1] - q->x * v[2] + q->z * v[0];
+   double Z = q->w * v[2] + q->x * v[1] - q->y * v[0];
 
-   return (vector) {
-      W * q.x + X * q.w - Y * q.z + Z * q.y,
-      W * q.y + X * q.z + Y * q.w - Z * q.x,
-      W * q.z - X * q.y + Y * q.x + Z * q.w};
+   r[0] = W * q->x + X * q->w - Y * q->z + Z * q->y,
+   r[1] = W * q->y + X * q->z + Y * q->w - Z * q->x,
+   r[2] = W * q->z - X * q->y + Y * q->x + Z * q->w;
 }
 
-vector
-quaternion_rotate_frame(quaternion q, vector v)
+void
+quaternion_rotate_frame(const quaternion *q, const double v[3], double r[3])
 {
-   double W = q.x * v.x + q.y * v.y - q.z * v.z;
-   double X = q.w * v.x - q.y * v.z + q.z * v.y;
-   double Y = q.w * v.y + q.x * v.z - q.z * v.x;
-   double Z = q.w * v.z - q.x * v.y + q.y * v.x;
+   double W = q->x * v[0] + q->y * v[1] - q->z * v[2];
+   double X = q->w * v[0] - q->y * v[2] + q->z * v[1];
+   double Y = q->w * v[1] + q->x * v[2] - q->z * v[0];
+   double Z = q->w * v[2] - q->x * v[1] + q->y * v[0];
 
-   return (vector) {
-      W * q.x + X * q.w + Y * q.z - Z * q.y,
-      W * q.y - X * q.z + Y * q.w + Z * q.x,
-      W * q.z + X * q.y - Y * q.x + Z * q.w};
+   r[0] = W * q->x + X * q->w + Y * q->z - Z * q->y,
+   r[1] = W * q->y - X * q->z + Y * q->w + Z * q->x,
+   r[2] = W * q->z + X * q->y - Y * q->x + Z * q->w;
 }
