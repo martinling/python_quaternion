@@ -63,7 +63,7 @@ cdef class Quaternion:
 
     cdef quaternion _value
 
-    def __cinit__(self, double w=1, double x=0, double y=0, double z=0):
+    def __cinit__(self, double w=0, double x=0, double y=0, double z=0):
         self._value = quaternion(w, x, y, z)
 
     # Properties
