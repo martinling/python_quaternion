@@ -38,6 +38,10 @@ cdef extern from "quaternion.h":
         double x
         double y
         double z
+    ctypedef struct vector:
+        double x
+        double y
+        double z
     int quaternion_equal(quaternion q1, quaternion q2)
     int quaternion_not_equal(quaternion q1, quaternion q2)
     int quaternion_less(quaternion q1, quaternion q2)
@@ -58,6 +62,8 @@ cdef extern from "quaternion.h":
     quaternion quaternion_exp(quaternion q)
     quaternion quaternion_power(quaternion q1, quaternion q2)
     quaternion quaternion_power_scalar(quaternion q, double s)
+    vector quaternion_rotate_vector(quaternion q, vector v)
+    vector quaternion_rotate_frame(quaternion q, vector v)
 
 cdef class Quaternion:
 
@@ -328,3 +334,21 @@ cdef class Quaternion:
         """ Negate this quaternion. """
         self._value = quaternion_negative(self._value)
         return self
+
+    # Rotations on vectors.
+
+    def rotate_vector(Quaternion self, v):
+        """
+        Use this quaternion to rotate a vector.
+        """
+        cdef vector vec = vector(v[0], v[1], v[2])
+        cdef vector result = quaternion_rotate_vector(self._value, vec)
+        return result.x, result.y, result.z
+
+    def rotate_frame(Quaternion self, v):
+        """
+        Use this quaternion to rotate the co-ordinate frame of a vector.
+        """
+        cdef vector vec = vector(v[0], v[1], v[2])
+        cdef vector result = quaternion_rotate_frame(self._value, vec)
+        return result.x, result.y, result.z

@@ -46,6 +46,12 @@ typedef struct {
 	double z;
 } quaternion;
 
+typedef struct {
+	double x;
+	double y;
+	double z;
+} vector;
+
 int quaternion_isnonzero(quaternion q);
 int quaternion_isnan(quaternion q);
 int quaternion_isinf(quaternion q);
@@ -71,6 +77,8 @@ quaternion quaternion_exp(quaternion q);
 quaternion quaternion_power(quaternion q, quaternion p);
 quaternion quaternion_power_scalar(quaternion q, double p);
 quaternion quaternion_copysign(quaternion q1, quaternion q2);
+vector quaternion_rotate_vector(quaternion q, vector v);
+vector quaternion_rotate_frame(quaternion q, vector v);
 
 #ifdef __cplusplus
 }

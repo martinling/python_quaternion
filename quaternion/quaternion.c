@@ -245,3 +245,31 @@ quaternion_power_scalar(quaternion q, double s)
 {
    return quaternion_exp(quaternion_multiply_scalar(quaternion_log(q), s));
 }
+
+vector
+quaternion_rotate_vector(quaternion q, vector v)
+{
+   double W = q.x * v.x + q.y * v.y + q.z * v.z;
+   double X = q.w * v.x + q.y * v.z - q.z * v.y;
+   double Y = q.w * v.y - q.x * v.z + q.z * v.x;
+   double Z = q.w * v.z + q.x * v.y - q.y * v.x;
+
+   return (vector) {
+      W * q.x + X * q.w - Y * q.z + Z * q.y,
+      W * q.y + X * q.z + Y * q.w - Z * q.x,
+      W * q.z - X * q.y + Y * q.x + Z * q.w};
+}
+
+vector
+quaternion_rotate_frame(quaternion q, vector v)
+{
+   double W = q.x * v.x + q.y * v.y - q.z * v.z;
+   double X = q.w * v.x - q.y * v.z + q.z * v.y;
+   double Y = q.w * v.y + q.x * v.z - q.z * v.x;
+   double Z = q.w * v.z - q.x * v.y + q.y * v.x;
+
+   return (vector) {
+      W * q.x + X * q.w + Y * q.z - Z * q.y,
+      W * q.y - X * q.z + Y * q.w + Z * q.x,
+      W * q.z + X * q.y - Y * q.x + Z * q.w};
+}
