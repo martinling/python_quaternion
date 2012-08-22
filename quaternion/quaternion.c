@@ -34,6 +34,7 @@
 
 #include "quaternion.h"
 #include "math.h"
+#include "ctype.h"
 
 #define _QUAT_EPS 1e-6
 
@@ -294,4 +295,56 @@ quaternion_rotate_frame(const quaternion *q, const double v[3], double r[3])
    r[0] = W * q->x + X * q->w + Y * q->z - Z * q->y,
    r[1] = W * q->y - X * q->z + Y * q->w + Z * q->x,
    r[2] = W * q->z + X * q->y - Y * q->x + Z * q->w;
+}
+
+void
+quaternion_to_euler(const quaternion *q, const char *order, double r[3])
+{
+   const double axes[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+   int i[3], j;
+   for (j = 0; j < 3; j++) {
+      char axis = tolower(order[j]);
+      if (axis < 'x' || axis > 'z') {
+         r[0] = NAN;
+         r[1] = NAN;
+         r[2] = NAN;
+         return;
+      }
+      i[j] = axis - 'x';
+   }
+   double v[3];
+   quaternion_rotate_vector(q, axes[i[2]], v);
+   int a = i[0];
+   int b = (i[0] + 1) % 3;
+   int c = (i[0] + 2) % 3;
+   int non_circular = i[1] != b;
+   int repeated_axis = i[0] == i[2];
+   if (non_circular) {
+      if (repeated_axis) {
+         r[0] = atan2(v[c], v[b]);
+         r[1] = acos(v[a]);
+      } else {
+         r[0] = atan2(v[c], v[b]);
+         r[1] = -asin(v[a]);
+      }
+   } else {
+      if (repeated_axis) {
+         r[0] = atan2(v[b], -v[c]);
+         r[1] = acos(a);
+      } else {
+         r[0] = atan2(-v[b], v[c]);
+         r[1] = asin(v[a]);
+      }
+   }
+   quaternion qr[3];
+   for (j = 0; j < 2; j++) {
+      qr[j].w = cos(r[j] / 2);
+      ((double *) &qr[j].x)[i[j]] = sin(r[j] / 2);
+   }
+   quaternion_multiply(&qr[0], &qr[1], &qr[2]);
+   quaternion_conjugate(&qr[2], &qr[2]);
+   quaternion_multiply(&qr[2], q, &qr[2]);
+   r[2] = 2 * acos(qr[2].w);
+   if (r[2] > M_PI)
+      r[2] -= 2 * M_PI;
 }

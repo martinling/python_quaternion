@@ -66,6 +66,7 @@ cdef extern from "quaternion.h":
     void quaternion_power_scalar(quaternion *q, double s, quaternion *r)
     void quaternion_rotate_vector(quaternion *q, double v[3], double r[3])
     void quaternion_rotate_frame(quaternion *q, double v[3], double r[3])
+    void quaternion_to_euler(quaternion *q, char *order, double r[3])
 
 cdef class Quaternion:
 
@@ -366,3 +367,9 @@ cdef class Quaternion:
             return np.array(result)
         else:
             return type(v)(result)
+
+    def to_euler(Quaternion self, char *order):
+        cdef double[3] res
+        quaternion_to_euler(&self._value, order, res)
+        return res[0], res[1], res[2]
+
