@@ -32,6 +32,12 @@
 
 from __future__ import division
 
+try:
+    import numpy as np
+    is_ndarray = lambda x: isinstance(x, np.ndarray)
+except ImportError:
+    is_ndarray = lambda x: False
+
 cdef extern from "quaternion.h":
     ctypedef struct quaternion:
         double w
@@ -342,13 +348,21 @@ cdef class Quaternion:
         Use this quaternion to rotate a vector.
         """
         cdef vector vec = vector(v[0], v[1], v[2])
-        cdef vector result = quaternion_rotate_vector(self._value, vec)
-        return result.x, result.y, result.z
+        cdef vector res = quaternion_rotate_vector(self._value, vec)
+        result = (res.x, res.y, res.z)
+        if is_ndarray(v):
+            return np.array(result)
+        else:
+            return type(v)(result)
 
     def rotate_frame(Quaternion self, v):
         """
         Use this quaternion to rotate the co-ordinate frame of a vector.
         """
         cdef vector vec = vector(v[0], v[1], v[2])
-        cdef vector result = quaternion_rotate_frame(self._value, vec)
-        return result.x, result.y, result.z
+        cdef vector res = quaternion_rotate_frame(self._value, vec)
+        result = (res.x, res.y, res.z)
+        if is_ndarray(v):
+            return np.array(result)
+        else:
+            return type(v)(result)
