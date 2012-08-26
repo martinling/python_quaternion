@@ -66,7 +66,15 @@ cdef extern from "quaternion.h":
     void quaternion_power_scalar(quaternion *q, double s, quaternion *r)
     void quaternion_rotate_vector(quaternion *q, double v[3], double r[3])
     void quaternion_rotate_frame(quaternion *q, double v[3], double r[3])
+    void quaternion_from_euler(char *order, double angles[3], quaternion *r)
     void quaternion_to_euler(quaternion *q, char *order, double r[3])
+
+cdef extern from "stdlib.h":
+    void *malloc(size_t size)
+    void free(void *ptr)
+
+cdef extern from "string.h":
+    size_t strlen(char *s)
 
 cdef class Quaternion:
 
@@ -367,6 +375,18 @@ cdef class Quaternion:
             return np.array(result)
         else:
             return type(v)(result)
+
+    # Conversions to and from other rotation formats.
+
+    @classmethod
+    def from_euler(cls, char *order, angles):
+        cdef Quaternion result = Quaternion()
+        cdef double *ang = <double *> malloc(strlen(order) * sizeof(double))
+        for i in range(strlen(order)):
+            ang[i] = angles[i]
+        quaternion_from_euler(order, ang, &result._value)
+        free(ang)
+        return result
 
     def to_euler(Quaternion self, char *order):
         cdef double[3] res

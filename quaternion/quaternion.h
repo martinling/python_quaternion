@@ -73,6 +73,7 @@ void quaternion_power(const quaternion *q1, const quaternion *q2, quaternion *r)
 void quaternion_power_scalar(const quaternion *q, double s, quaternion *r);
 void quaternion_rotate_vector(const quaternion *q, const double v[3], double r[3]);
 void quaternion_rotate_frame(const quaternion *q, const double v[3], double r[3]);
+void quaternion_from_euler(const char *order, double angles[3], quaternion *r);
 void quaternion_to_euler(const quaternion *q, const char *order, double r[3]);
 
 #ifdef __cplusplus

@@ -297,28 +297,63 @@ quaternion_rotate_frame(const quaternion *q, const double v[3], double r[3])
    r[2] = W * q->z + X * q->y - Y * q->x + Z * q->w;
 }
 
+
+static inline void
+quaternion_from_angle(int axis, double angle, quaternion *r)
+{
+   int i;
+   r->w = cos(angle) / 2;
+   for (i = 0; i < 3; i++)
+      ((double *) &r->x)[i] = i == axis ? sin(angle / 2) : 0;
+}
+
+void
+quaternion_from_euler(const char *order, double angles[], quaternion *r)
+{
+   int i;
+   quaternion q;
+   for (i = 0; order[i] != '\0'; i++)
+   {
+      char axis = tolower(*order);
+      if (axis < 'x' || axis > 'z') {
+         r->w = NAN, 
+         r->x = NAN,
+         r->y = NAN,
+         r->z = NAN;
+         return;
+      } else {
+         if (i == 0) {
+            quaternion_from_angle(axis - 'x', angles[i], r);
+         } else {
+            quaternion_from_angle(axis - 'x', angles[i], &q);
+            quaternion_multiply(r, &q, r);
+         }
+      }
+   }
+}
+
 void
 quaternion_to_euler(const quaternion *q, const char *order, double r[3])
 {
    const double axes[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-   int i[3], j;
-   for (j = 0; j < 3; j++) {
-      char axis = tolower(order[j]);
+   int indices[3], i;
+   for (i = 0; i < 3; i++) {
+      char axis = tolower(order[i]);
       if (axis < 'x' || axis > 'z') {
          r[0] = NAN;
          r[1] = NAN;
          r[2] = NAN;
          return;
       }
-      i[j] = axis - 'x';
+      indices[i] = axis - 'x';
    }
    double v[3];
-   quaternion_rotate_vector(q, axes[i[2]], v);
-   int a = i[0];
-   int b = (i[0] + 1) % 3;
-   int c = (i[0] + 2) % 3;
-   int non_circular = i[1] != b;
-   int repeated_axis = i[0] == i[2];
+   quaternion_rotate_vector(q, axes[indices[2]], v);
+   int a = indices[0];
+   int b = (indices[0] + 1) % 3;
+   int c = (indices[0] + 2) % 3;
+   int non_circular = indices[1] != b;
+   int repeated_axis = indices[0] == indices[2];
    if (non_circular) {
       if (repeated_axis) {
          r[0] = atan2(v[c], v[b]);
@@ -337,10 +372,8 @@ quaternion_to_euler(const quaternion *q, const char *order, double r[3])
       }
    }
    quaternion qr[3];
-   for (j = 0; j < 2; j++) {
-      qr[j].w = cos(r[j] / 2);
-      ((double *) &qr[j].x)[i[j]] = sin(r[j] / 2);
-   }
+   for (i = 0; i < 2; i++)
+      quaternion_from_angle(indices[i], r[i], &qr[i]);
    quaternion_multiply(&qr[0], &qr[1], &qr[2]);
    quaternion_conjugate(&qr[2], &qr[2]);
    quaternion_multiply(&qr[2], q, &qr[2]);
