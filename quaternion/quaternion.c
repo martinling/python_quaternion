@@ -182,10 +182,11 @@ quaternion_subtract_scalar(const quaternion *q, double s, quaternion *r)
 void
 quaternion_multiply(const quaternion *q1, const quaternion *q2, quaternion *r)
 {
-   r->w = q1->w*q2->w - q1->x*q2->x - q1->y*q2->y - q1->z*q2->z,
-   r->x = q1->w*q2->x + q1->x*q2->w + q1->y*q2->z - q1->z*q2->y,
-   r->y = q1->w*q2->y - q1->x*q2->z + q1->y*q2->w + q1->z*q2->x,
-   r->z = q1->w*q2->z + q1->x*q2->y - q1->y*q2->x + q1->z*q2->w;
+   double w = q1->w*q2->w - q1->x*q2->x - q1->y*q2->y - q1->z*q2->z;
+   double x = q1->w*q2->x + q1->x*q2->w + q1->y*q2->z - q1->z*q2->y;
+   double y = q1->w*q2->y - q1->x*q2->z + q1->y*q2->w + q1->z*q2->x;
+   double z = q1->w*q2->z + q1->x*q2->y - q1->y*q2->x + q1->z*q2->w;
+   r->w = w, r->x = x, r->y = y, r->z = z;
 }
 
 void
@@ -201,10 +202,11 @@ void
 quaternion_divide(const quaternion *q1, const quaternion *q2, quaternion *r)
 {
    double s = q2->w*q2->w + q2->x*q2->x + q2->y*q2->y + q2->z*q2->z;
-   r->w = (  q1->w*q2->w + q1->x*q2->x + q1->y*q2->y + q1->z*q2->z) / s,
-   r->x = (- q1->w*q2->x + q1->x*q2->w + q1->y*q2->z - q1->z*q2->y) / s,
-   r->y = (- q1->w*q2->y - q1->x*q2->z + q1->y*q2->w + q1->z*q2->x) / s,
-   r->z = (- q1->w*q2->z + q1->x*q2->y - q1->y*q2->x + q1->z*q2->w) / s;
+   double w = (  q1->w*q2->w + q1->x*q2->x + q1->y*q2->y + q1->z*q2->z) / s;
+   double x = (- q1->w*q2->x + q1->x*q2->w + q1->y*q2->z - q1->z*q2->y) / s;
+   double y = (- q1->w*q2->y - q1->x*q2->z + q1->y*q2->w + q1->z*q2->x) / s;
+   double z = (- q1->w*q2->z + q1->x*q2->y - q1->y*q2->x + q1->z*q2->w) / s;
+   r->w = w, r->x = x, r->y = y, r->z = z;
 }
 
 void
