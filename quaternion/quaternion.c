@@ -312,6 +312,7 @@ quaternion_from_euler(const char *order, double angles[], quaternion *r)
 {
    int i;
    quaternion q;
+   r->w = 1, r->x = 0, r->y = 0, r->z = 0;
    for (i = 0; order[i] != '\0'; i++)
    {
       char axis = tolower(*order);
