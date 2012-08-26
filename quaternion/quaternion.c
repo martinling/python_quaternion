@@ -304,7 +304,7 @@ static inline void
 quaternion_from_angle(int axis, double angle, quaternion *r)
 {
    int i;
-   r->w = cos(angle) / 2;
+   r->w = cos(angle / 2);
    for (i = 0; i < 3; i++)
       ((double *) &r->x)[i] = i == axis ? sin(angle / 2) : 0;
 }
@@ -317,7 +317,7 @@ quaternion_from_euler(const char *order, double angles[], quaternion *r)
    r->w = 1, r->x = 0, r->y = 0, r->z = 0;
    for (i = 0; order[i] != '\0'; i++)
    {
-      char axis = tolower(*order);
+      char axis = tolower(order[i]);
       if (axis < 'x' || axis > 'z') {
          r->w = NAN, 
          r->x = NAN,
@@ -325,12 +325,8 @@ quaternion_from_euler(const char *order, double angles[], quaternion *r)
          r->z = NAN;
          return;
       } else {
-         if (i == 0) {
-            quaternion_from_angle(axis - 'x', angles[i], r);
-         } else {
-            quaternion_from_angle(axis - 'x', angles[i], &q);
-            quaternion_multiply(r, &q, r);
-         }
+         quaternion_from_angle(axis - 'x', angles[i], &q);
+         quaternion_multiply(r, &q, r);
       }
    }
 }
