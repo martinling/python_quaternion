@@ -353,6 +353,7 @@ quaternion_to_euler(const quaternion *q, const char *order, double r[3])
    int c = (indices[0] + 2) % 3;
    int non_circular = indices[1] != b;
    int repeated_axis = indices[0] == indices[2];
+   v[a] = v[a] > 1 ? 1 : v[a] < -1 ? -1: v[a];
    if (non_circular) {
       if (repeated_axis) {
          r[0] = atan2(v[c], v[b]);
@@ -364,7 +365,7 @@ quaternion_to_euler(const quaternion *q, const char *order, double r[3])
    } else {
       if (repeated_axis) {
          r[0] = atan2(v[b], -v[c]);
-         r[1] = acos(a);
+         r[1] = acos(v[a]);
       } else {
          r[0] = atan2(-v[b], v[c]);
          r[1] = asin(v[a]);
@@ -376,7 +377,5 @@ quaternion_to_euler(const quaternion *q, const char *order, double r[3])
    quaternion_multiply(&qr[0], &qr[1], &qr[2]);
    quaternion_conjugate(&qr[2], &qr[2]);
    quaternion_multiply(&qr[2], q, &qr[2]);
-   r[2] = 2 * acos(qr[2].w);
-   if (r[2] > M_PI)
-      r[2] -= 2 * M_PI;
+   r[2] = 2 * atan2(((double *) &qr[2].x)[indices[2]], qr[2].w);
 }
