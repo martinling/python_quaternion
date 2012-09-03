@@ -358,7 +358,7 @@ cdef class Quaternion:
         quaternion_rotate_vector(&self._value, vec, res)
         result = (res[0], res[1], res[2])
         if is_ndarray(v):
-            return np.array(result)
+            return np.array(result).view(type(v))
         else:
             return type(v)(result)
 
@@ -372,7 +372,7 @@ cdef class Quaternion:
         quaternion_rotate_frame(&self._value, vec, res)
         result = (res[0], res[1], res[2])
         if is_ndarray(v):
-            return np.array(result)
+            return np.array(result).view(type(v))
         else:
             return type(v)(result)
 
