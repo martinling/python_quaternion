@@ -378,4 +378,9 @@ quaternion_to_euler(const quaternion *q, const char *order, double r[3])
    quaternion_conjugate(&qr[2], &qr[2]);
    quaternion_multiply(&qr[2], q, &qr[2]);
    r[2] = 2 * atan2(((double *) &qr[2].x)[indices[2]], qr[2].w);
+   for (i = 0; i < 3; i++)
+      if (r[i] > M_PI)
+         r[i] -= 2 * M_PI;
+      else if (r[i] < -M_PI)
+         r[i] += 2 * M_PI;
 }
