@@ -32,11 +32,8 @@
 
 from __future__ import division
 
-try:
-    import numpy as np
-    is_ndarray = lambda x: isinstance(x, np.ndarray)
-except ImportError:
-    is_ndarray = lambda x: False
+import numpy as np
+cimport numpy as np
 
 cdef extern from "quaternion.h":
     ctypedef struct quaternion:
@@ -352,29 +349,65 @@ cdef class Quaternion:
         """
         Use this quaternion to rotate a vector.
         """
+        cdef np.ndarray[np.float_t, ndim=1] vec1d
+        cdef np.ndarray[np.float_t, ndim=1] res1d
+        cdef np.ndarray[np.float_t, ndim=2] vec2d
+        cdef np.ndarray[np.float_t, ndim=2] res2d
         cdef double[3] vec, res
-        for i in range(3):
-            vec[i] = v[i]
-        quaternion_rotate_vector(&self._value, vec, res)
-        result = (res[0], res[1], res[2])
-        if is_ndarray(v):
-            return np.array(result).view(type(v))
+        if isinstance(v, np.ndarray):
+            if v.ndim == 2:
+                vec2d = v
+                res2d = np.empty_like(v)
+                for i in range(len(v)):
+                    vec1d = vec2d[i]
+                    res1d = res2d[i]
+                    quaternion_rotate_vector(&self._value,
+                        <double *> vec1d.data, <double *> res1d.data)
+                result = res2d
+            else:
+                vec1d = v
+                res1d = np.empty_like(v)
+                quaternion_rotate_vector(&self._value,
+                    <double *> vec1d.data, <double *> res1d.data)
+                result = res1d
         else:
-            return type(v)(result)
+            for i in range(3):
+                vec[i] = v[i]
+            quaternion_rotate_vector(&self._value, vec, res)
+            result = type(v)(res[0], res[1], res[2])
+        return result
 
     def rotate_frame(Quaternion self, v):
         """
         Use this quaternion to rotate the co-ordinate frame of a vector.
         """
+        cdef np.ndarray[np.float_t, ndim=1] vec1d
+        cdef np.ndarray[np.float_t, ndim=1] res1d
+        cdef np.ndarray[np.float_t, ndim=2] vec2d
+        cdef np.ndarray[np.float_t, ndim=2] res2d
         cdef double[3] vec, res
-        for i in range(3):
-            vec[i] = v[i]
-        quaternion_rotate_frame(&self._value, vec, res)
-        result = (res[0], res[1], res[2])
-        if is_ndarray(v):
-            return np.array(result).view(type(v))
+        if isinstance(v, np.ndarray):
+            if v.ndim == 2:
+                vec2d = v
+                res2d = np.empty_like(v)
+                for i in range(len(v)):
+                    vec1d = vec2d[i]
+                    res1d = res2d[i]
+                    quaternion_rotate_frame(&self._value,
+                        <double *> vec1d.data, <double *> res1d.data)
+                result = res2d
+            else:
+                vec1d = v
+                res1d = np.empty_like(v)
+                quaternion_rotate_frame(&self._value,
+                    <double *> vec1d.data, <double *> res1d.data)
+                result = res1d
         else:
-            return type(v)(result)
+            for i in range(3):
+                vec[i] = v[i]
+            quaternion_rotate_frame(&self._value, vec, res)
+            result = type(v)(res[0], res[1], res[2])
+        return result
 
     # Conversions to and from other rotation formats.
 
