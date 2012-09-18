@@ -321,7 +321,7 @@ cdef class Quaternion:
             quaternion_divide_scalar(&self._value, other, &self._value)
         return self
 
-    __itruediv__ = __div__
+    __itruediv__ = __idiv__
 
     def __ipow__(Quaternion self, other):
         cdef Quaternion qo
