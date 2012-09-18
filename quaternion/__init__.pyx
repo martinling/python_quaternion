@@ -68,56 +68,64 @@ cdef extern from "quaternion.h":
 
 cdef class Quaternion:
 
-    cdef quaternion _value
+    cdef quaternion *value
+    cdef np.ndarray _components
 
-    def __cinit__(self, double w=0, double x=0, double y=0, double z=0):
-        self._value = quaternion(w, x, y, z)
+    def __cinit__(self, double w=0, double x=0, double y=0, double z=0, value=None):
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] components
+        if value is None:
+            components = np.array((w, x, y, z))
+        else:
+            assert np.shape(value) == (4,), "Component array must have length 4"
+            components = np.asarray(value, dtype=np.float, order='C')
+        self._components = components
+        self.value = <quaternion *> &components[0]
 
     # Properties
 
     property w:
         """ Real component of this quaternion. """
         def __get__(self):
-            return self._value.w
+            return self.value.w
         def __set__(self, double value):
-            self._value.w = value
+            self.value.w = value
 
     property x:
         """ First imaginary component of this quaternion. """
         def __get__(self):
-            return self._value.x
+            return self.value.x
         def __set__(self, double value):
-            self._value.x = value
+            self.value.x = value
 
     property y:
         """ Second imaginary component of this quaternion. """
         def __get__(self):
-            return self._value.y
+            return self.value.y
         def __set__(self, double value):
-            self._value.y = value
+            self.value.y = value
 
     property z:
         """ Third imaginary component of this quaternion. """
         def __get__(self):
-            return self._value.z
+            return self.value.z
         def __set__(self, double value):
-            self._value.z = value
+            self.value.z = value
 
     property components:
         """ The (w, x, y, z) components of this quaternion as a tuple. """
         def __get__(Quaternion self):
-            return (self.w, self.x, self.y, self.z)
+            return self._components
 
     property magnitude:
         """ Magnitude of this quaternion. """
         def __get__(Quaternion self):
-            return quaternion_magnitude(&self._value)
+            return quaternion_magnitude(self.value)
 
     property conjugate:
         """ Conjugate of this quaternion. """
         def __get__(Quaternion self):
             result = Quaternion()
-            quaternion_conjugate(&self._value, &result._value)
+            quaternion_conjugate(self.value, result.value)
             return result
 
     property vector:
@@ -140,13 +148,13 @@ cdef class Quaternion:
 
     def __richcmp__(Quaternion self, Quaternion other, int op):
         if op == 0:
-            return quaternion_less(&self._value, &other._value)
+            return quaternion_less(self.value, other.value)
         elif op == 1:
-            return quaternion_less_equal(&self._value, &other._value)
+            return quaternion_less_equal(self.value, other.value)
         elif op == 2:
-            return quaternion_equal(&self._value, &other._value)
+            return quaternion_equal(self.value, other.value)
         elif op == 3:
-            return quaternion_not_equal(&self._value, &other._value)
+            return quaternion_not_equal(self.value, other.value)
         else:
             return NotImplemented
 
@@ -163,12 +171,12 @@ cdef class Quaternion:
 
     def __neg__(Quaternion self):
         cdef Quaternion result = Quaternion()
-        quaternion_negative(&self._value, &result._value)
+        quaternion_negative(self.value, result.value)
         return result
 
     def __invert__(Quaternion self):
         cdef Quaternion result = Quaternion()
-        quaternion_conjugate(&self._value, &result._value)
+        quaternion_conjugate(self.value, result.value)
         return result
 
     def __add__(a, b):
@@ -177,13 +185,13 @@ cdef class Quaternion:
         cdef double sa, sb
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
-            quaternion_add(&qa._value, &qb._value, &result._value)
+            quaternion_add(qa.value, qb.value, result.value)
         elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
-            quaternion_add_scalar(&qa._value, sb, &result._value)
+            quaternion_add_scalar(qa.value, sb, result.value)
         elif np.isscalar(a) and isinstance(b, Quaternion):
             sa, qb = a, b
-            quaternion_add_scalar(&qb._value, sa, &result._value)
+            quaternion_add_scalar(qb.value, sa, result.value)
         else:
             return NotImplemented
         return result
@@ -194,14 +202,14 @@ cdef class Quaternion:
         cdef double sa, sb
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
-            quaternion_subtract(&qa._value, &qb._value, &result._value)
+            quaternion_subtract(qa.value, qb.value, result.value)
         elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
-            quaternion_subtract_scalar(&qa._value, sb, &result._value)
+            quaternion_subtract_scalar(qa.value, sb, result.value)
         elif np.isscalar(a) and isinstance(b, Quaternion):
             sa, qb = a, b
-            quaternion_negative(&qb._value, &result._value)
-            quaternion_add_scalar(&result._value, sa, &result._value)
+            quaternion_negative(qb.value, result.value)
+            quaternion_add_scalar(result.value, sa, result.value)
         else:
             return NotImplemented
         return result
@@ -212,13 +220,13 @@ cdef class Quaternion:
         cdef double sa, sb
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
-            quaternion_multiply(&qa._value, &qb._value, &result._value)
+            quaternion_multiply(qa.value, qb.value, result.value)
         elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
-            quaternion_multiply_scalar(&qa._value, sb, &result._value)
+            quaternion_multiply_scalar(qa.value, sb, result.value)
         elif np.isscalar(a) and isinstance(b, Quaternion):
             sa, qb = a, b
-            quaternion_multiply_scalar(&qb._value, sa, &result._value)
+            quaternion_multiply_scalar(qb.value, sa, result.value)
         else:
             return NotImplemented
         return result
@@ -229,14 +237,14 @@ cdef class Quaternion:
         cdef double sa, sb
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
-            quaternion_divide(&qa._value, &qb._value, &result._value)
+            quaternion_divide(qa.value, qb.value, result.value)
         elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
-            quaternion_divide_scalar(&qa._value, sb, &result._value)
+            quaternion_divide_scalar(qa.value, sb, result.value)
         elif np.isscalar(a) and isinstance(b, Quaternion):
             sa, qb = a, b
-            quaternion_power_scalar(&qb._value, -1, &result._value)
-            quaternion_multiply_scalar(&result._value, sa, &result._value)
+            quaternion_power_scalar(qb.value, -1, result.value)
+            quaternion_multiply_scalar(result.value, sa, result.value)
         else:
             return NotImplemented
         return result
@@ -249,13 +257,13 @@ cdef class Quaternion:
         cdef double sa, sb
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
-            quaternion_power(&qa._value, &qb._value, &result._value)
+            quaternion_power(qa.value, qb.value, result.value)
         elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
-            quaternion_power_scalar(&qa._value, sb, &result._value)
+            quaternion_power_scalar(qa.value, sb, result.value)
         elif np.isscalar(a) and isinstance(b, Quaternion):
             qa, qb = Quaternion(a, 0, 0, 0), b
-            quaternion_power(&qa._value, &qb._value, &result._value)
+            quaternion_power(qa.value, qb.value, result.value)
         else:
             return NotImplemented
         return result
@@ -263,18 +271,18 @@ cdef class Quaternion:
     def log(Quaternion self):
         """ Natural logarithm of this quaternion. """
         cdef Quaternion result = Quaternion()
-        quaternion_log(&self._value, &result._value)
+        quaternion_log(self.value, result.value)
         return result
 
     def exp(Quaternion self):
         """ Exponential of this quaternion. """
         cdef Quaternion result = Quaternion()
-        quaternion_exp(&self._value, &result._value)
+        quaternion_exp(self.value, result.value)
         return result
 
     def dot(Quaternion self, Quaternion other):
         """ Dot prodct of this quaternion with another. """
-        return quaternion_dot(&self._value, &other._value)
+        return quaternion_dot(self.value, other.value)
 
     # In-place arithmetic (modifies existing instance)
 
@@ -282,36 +290,36 @@ cdef class Quaternion:
         cdef Quaternion qo
         if isinstance(other, Quaternion):
             qo = other
-            quaternion_add(&self._value, &qo._value, &self._value)
+            quaternion_add(self.value, qo.value, self.value)
         else:
-            quaternion_add_scalar(&self._value, other, &self._value)
+            quaternion_add_scalar(self.value, other, self.value)
         return self
 
     def __isub__(Quaternion self, other):
         cdef Quaternion qo
         if isinstance(other, Quaternion):
             qo = other
-            quaternion_subtract(&self._value, &qo._value, &self._value)
+            quaternion_subtract(self.value, qo.value, self.value)
         else:
-            quaternion_subtract_scalar(&self._value, other, &self._value)
+            quaternion_subtract_scalar(self.value, other, self.value)
         return self
 
     def __imul__(Quaternion self, other):
         cdef Quaternion qo
         if isinstance(other, Quaternion):
             qo = other
-            quaternion_multiply(&self._value, &qo._value, &self._value)
+            quaternion_multiply(self.value, qo.value, self.value)
         else:
-            quaternion_multiply_scalar(&self._value, other, &self._value)
+            quaternion_multiply_scalar(self.value, other, self.value)
         return self
 
     def __idiv__(Quaternion self, other):
         cdef Quaternion qo
         if isinstance(other, Quaternion):
             qo = other
-            quaternion_divide(&self._value, &qo._value, &self._value)
+            quaternion_divide(self.value, qo.value, self.value)
         else:
-            quaternion_divide_scalar(&self._value, other, &self._value)
+            quaternion_divide_scalar(self.value, other, self.value)
         return self
 
     __itruediv__ = __idiv__
@@ -320,20 +328,20 @@ cdef class Quaternion:
         cdef Quaternion qo
         if isinstance(other, Quaternion):
             qo = other
-            quaternion_power(&self._value, &qo._value, &self._value)
+            quaternion_power(self.value, qo.value, self.value)
         else:
-            quaternion_power_scalar(&self._value, other, &self._value)
+            quaternion_power_scalar(self.value, other, self.value)
         return self
 
     def normalise(Quaternion self):
         """ Normalise this quaternion to unit length. """
-        quaternion_multiply_scalar(&self._value,
-            1 / quaternion_magnitude(&self._value), &self._value)
+        quaternion_multiply_scalar(self.value,
+            1 / quaternion_magnitude(self.value), self.value)
         return self
 
     def negate(Quaternion self):
         """ Negate this quaternion. """
-        quaternion_negative(&self._value, &self._value)
+        quaternion_negative(self.value, self.value)
         return self
 
     # Rotations on vectors.
@@ -351,14 +359,14 @@ cdef class Quaternion:
             assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
             res2d = np.empty_like(vec2d)
             for i in range(len(v)):
-                quaternion_rotate_vector(&self._value,
+                quaternion_rotate_vector(self.value,
                     <double *> &vec2d[i, 0], <double *> &res2d[i, 0])
             return res2d
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
             vec1d = np.asarray(v, dtype=float)
             res1d = np.empty_like(vec1d)
-            quaternion_rotate_vector(&self._value,
+            quaternion_rotate_vector(self.value,
                 <double *> &vec1d[0], <double *> &res1d[0])
             return res1d
 
@@ -375,14 +383,14 @@ cdef class Quaternion:
             assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
             res2d = np.empty_like(vec2d)
             for i in range(len(v)):
-                quaternion_rotate_frame(&self._value,
+                quaternion_rotate_frame(self.value,
                     <double *> &vec2d[i, 0], <double *> &res2d[i, 0])
             return res2d
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
             vec1d = np.asarray(v, dtype=np.float)
             res1d = np.empty_like(vec1d)
-            quaternion_rotate_frame(&self._value,
+            quaternion_rotate_frame(self.value,
                 <double *> &vec1d[0], <double *> &res1d[0])
             return res1d
 
@@ -393,12 +401,12 @@ cdef class Quaternion:
         cdef Quaternion result = Quaternion()
         assert len(order) == len(angles), "Order and angles must have same length"
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] ang = np.asarray(angles, dtype=np.float)
-        quaternion_from_euler(order, <double *> &ang[0], &result._value)
+        quaternion_from_euler(order, <double *> &ang[0], result.value)
         return result
 
     def to_euler(Quaternion self, char *order):
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] result = np.zeros(len(order))
-        quaternion_to_euler(&self._value, order, <double *> &result[0])
+        quaternion_to_euler(self.value, order, <double *> &result[0])
         return result
 
 cdef class QuaternionArray:
@@ -425,7 +433,7 @@ cdef class QuaternionArray:
         if isinstance(key, slice):
             return QuaternionArray(self.components[key])
         else:
-            return Quaternion(*self.components[key])
+            return Quaternion(value=self.components[key])
     
     def __setitem__(QuaternionArray self, key, value):
         if isinstance(value, (Quaternion, QuaternionArray)):
@@ -553,7 +561,7 @@ cdef class QuaternionArray:
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_add(&qqa.values[i], &qb._value, &result.values[i])
+                    quaternion_add(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
@@ -568,7 +576,7 @@ cdef class QuaternionArray:
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_add(&qa._value, &qqb.values[i], &result.values[i])
+                    quaternion_add(qa.value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 ssa = np.asarray(a)
                 for i in range(qqb.length):
@@ -599,7 +607,7 @@ cdef class QuaternionArray:
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_subtract(&qqa.values[i], &qb._value, &result.values[i])
+                    quaternion_subtract(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
@@ -614,7 +622,7 @@ cdef class QuaternionArray:
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_subtract(&qa._value, &qqb.values[i], &result.values[i])
+                    quaternion_subtract(qa.value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 ssa = np.asarray(a)
                 for i in range(qqb.length):
@@ -647,7 +655,7 @@ cdef class QuaternionArray:
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_multiply(&qqa.values[i], &qb._value, &result.values[i])
+                    quaternion_multiply(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
@@ -662,7 +670,7 @@ cdef class QuaternionArray:
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_multiply(&qa._value, &qqb.values[i], &result.values[i])
+                    quaternion_multiply(qa.value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 ssa = np.asarray(a)
                 for i in range(qqb.length):
@@ -693,7 +701,7 @@ cdef class QuaternionArray:
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_divide(&qqa.values[i], &qb._value, &result.values[i])
+                    quaternion_divide(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
@@ -708,7 +716,7 @@ cdef class QuaternionArray:
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_divide(&qa._value, &qqb.values[i], &result.values[i])
+                    quaternion_divide(qa.value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 ssa = np.asarray(a)
                 for i in range(qqb.length):
@@ -743,7 +751,7 @@ cdef class QuaternionArray:
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_power(&qqa.values[i], &qb._value, &result.values[i])
+                    quaternion_power(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
@@ -758,7 +766,7 @@ cdef class QuaternionArray:
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_power(&qa._value, &qqb.values[i], &result.values[i])
+                    quaternion_power(qa.value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 qqa = QuaternionArray.like(qqb)
                 qqa.w = a
@@ -768,7 +776,7 @@ cdef class QuaternionArray:
             else:
                 qa = Quaternion(a, 0, 0, 0)
                 for i in range(qqb.length):
-                    quaternion_power(&qa._value, &qqb.values[i], &result.values[i])
+                    quaternion_power(qa.value, &qqb.values[i], &result.values[i])
         else:
             return NotImplemented
         return result
@@ -799,7 +807,7 @@ cdef class QuaternionArray:
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                result[i] = quaternion_dot(&self.values[i], &qo._value)
+                result[i] = quaternion_dot(&self.values[i], qo.value)
         else:
             return NotImplemented
         return result
@@ -817,7 +825,7 @@ cdef class QuaternionArray:
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_add(&self.values[i], &qo._value, &self.values[i])
+                quaternion_add(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
@@ -838,7 +846,7 @@ cdef class QuaternionArray:
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_subtract(&self.values[i], &qo._value, &self.values[i])
+                quaternion_subtract(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
@@ -859,7 +867,7 @@ cdef class QuaternionArray:
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_multiply(&self.values[i], &qo._value, &self.values[i])
+                quaternion_multiply(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
@@ -880,7 +888,7 @@ cdef class QuaternionArray:
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_divide(&self.values[i], &qo._value, &self.values[i])
+                quaternion_divide(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
@@ -903,7 +911,7 @@ cdef class QuaternionArray:
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_power(&self.values[i], &qo._value, &self.values[i])
+                quaternion_power(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
