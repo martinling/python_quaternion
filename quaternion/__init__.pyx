@@ -353,29 +353,21 @@ cdef class Quaternion:
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] res1d
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
-        cdef double[3] vec, res
-        if isinstance(v, np.ndarray):
-            if v.ndim == 2:
-                vec2d = v
-                res2d = np.empty_like(v)
-                for i in range(len(v)):
-                    vec1d = vec2d[i]
-                    res1d = res2d[i]
-                    quaternion_rotate_vector(&self._value,
-                        <double *> vec1d.data, <double *> res1d.data)
-                result = res2d
-            else:
-                vec1d = v
-                res1d = np.empty_like(v)
+        if np.ndim(v) == 2:
+            vec2d = np.asarray(v, dtype=np.float)
+            assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
+            res2d = np.empty_like(vec2d)
+            for i in range(len(v)):
                 quaternion_rotate_vector(&self._value,
-                    <double *> vec1d.data, <double *> res1d.data)
-                result = res1d
+                    <double *> &vec2d[i, 0], <double *> &res2d[i, 0])
+            return res2d
         else:
-            for i in range(3):
-                vec[i] = v[i]
-            quaternion_rotate_vector(&self._value, vec, res)
-            result = type(v)(res[0], res[1], res[2])
-        return result
+            assert np.shape(v) == (3,), "Vector must have length 3"
+            vec1d = np.asarray(v, dtype=float)
+            res1d = np.empty_like(vec1d)
+            quaternion_rotate_vector(&self._value,
+                <double *> &vec1d[0], <double *> &res1d[0])
+            return res1d
 
     def rotate_frame(Quaternion self, v):
         """
@@ -385,46 +377,36 @@ cdef class Quaternion:
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] res1d
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
-        cdef double[3] vec, res
-        if isinstance(v, np.ndarray):
-            if v.ndim == 2:
-                vec2d = v
-                res2d = np.empty_like(v)
-                for i in range(len(v)):
-                    vec1d = vec2d[i]
-                    res1d = res2d[i]
-                    quaternion_rotate_frame(&self._value,
-                        <double *> vec1d.data, <double *> res1d.data)
-                result = res2d
-            else:
-                vec1d = v
-                res1d = np.empty_like(v)
+        if np.ndim(v) == 2:
+            vec2d = np.asarray(v, dtype=np.float)
+            assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
+            res2d = np.empty_like(vec2d)
+            for i in range(len(v)):
                 quaternion_rotate_frame(&self._value,
-                    <double *> vec1d.data, <double *> res1d.data)
-                result = res1d
+                    <double *> &vec2d[i, 0], <double *> &res2d[i, 0])
+            return res2d
         else:
-            for i in range(3):
-                vec[i] = v[i]
-            quaternion_rotate_frame(&self._value, vec, res)
-            result = type(v)(res[0], res[1], res[2])
-        return result
+            assert np.shape(v) == (3,), "Vector must have length 3"
+            vec1d = np.asarray(v, dtype=np.float)
+            res1d = np.empty_like(vec1d)
+            quaternion_rotate_frame(&self._value,
+                <double *> &vec1d[0], <double *> &res1d[0])
+            return res1d
 
     # Conversions to and from other rotation formats.
 
     @classmethod
     def from_euler(cls, char *order, angles):
         cdef Quaternion result = Quaternion()
-        cdef double *ang = <double *> malloc(strlen(order) * sizeof(double))
-        for i in range(strlen(order)):
-            ang[i] = angles[i]
-        quaternion_from_euler(order, ang, &result._value)
-        free(ang)
+        assert len(order) == len(angles), "Order and angles must have same length"
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ang = np.asarray(angles, dtype=np.float)
+        quaternion_from_euler(order, <double *> &ang[0], &result._value)
         return result
 
     def to_euler(Quaternion self, char *order):
-        cdef double[3] res
-        quaternion_to_euler(&self._value, order, res)
-        return res[0], res[1], res[2]
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] result = np.zeros(len(order))
+        quaternion_to_euler(&self._value, order, <double *> &result[0])
+        return result
 
 cdef class QuaternionArray:
 
