@@ -349,10 +349,10 @@ cdef class Quaternion:
         """
         Use this quaternion to rotate a vector.
         """
-        cdef np.ndarray[np.float_t, ndim=1] vec1d
-        cdef np.ndarray[np.float_t, ndim=1] res1d
-        cdef np.ndarray[np.float_t, ndim=2] vec2d
-        cdef np.ndarray[np.float_t, ndim=2] res2d
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] res1d
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
         cdef double[3] vec, res
         if isinstance(v, np.ndarray):
             if v.ndim == 2:
@@ -381,10 +381,10 @@ cdef class Quaternion:
         """
         Use this quaternion to rotate the co-ordinate frame of a vector.
         """
-        cdef np.ndarray[np.float_t, ndim=1] vec1d
-        cdef np.ndarray[np.float_t, ndim=1] res1d
-        cdef np.ndarray[np.float_t, ndim=2] vec2d
-        cdef np.ndarray[np.float_t, ndim=2] res2d
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] res1d
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
         cdef double[3] vec, res
         if isinstance(v, np.ndarray):
             if v.ndim == 2:
@@ -433,10 +433,10 @@ cdef class QuaternionArray:
     cdef unsigned int length
 
     def __cinit__(QuaternionArray self, values):
-        cdef np.ndarray[np.float_t, ndim=2] components
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] components
         assert np.ndim(values) == 2 and np.shape(values)[1] == 4, \
             "Values must have shape (N, 4)"
-        components = np.asarray(values, dtype=np.float)
+        components = np.asarray(values, dtype=np.float, order='C')
         self._components = components
         self._values = <quaternion *> &components[0, 0]
         self.length = len(components)
@@ -463,7 +463,7 @@ cdef class QuaternionArray:
     property components:
         """ N x 4 array of quaternion [w, x, y, z] components. """
         def __get__(QuaternionArray self):
-            cdef np.ndarray[np.float_t, ndim=2] components = self._components
+            cdef np.ndarray[np.float_t, ndim=2, mode='c'] components = self._components
             return components
         def __set__(QuaternionArray self, value):
             self._components[:] = value
@@ -499,7 +499,7 @@ cdef class QuaternionArray:
     property magnitude:
         """ Magnitudes of these quaternions. """
         def __get__(QuaternionArray self):
-            cdef np.ndarray[np.float_t, ndim=1] result = np.empty(self.length)
+            cdef np.ndarray[np.float_t, ndim=1, mode='c'] result = np.empty(self.length)
             for i in range(self.length):
                 result[i] = quaternion_magnitude(&self._values[i])
             return result
@@ -564,7 +564,7 @@ cdef class QuaternionArray:
         cdef QuaternionArray result
         cdef QuaternionArray qqa, qqb
         cdef Quaternion qa, qb
-        cdef np.ndarray[np.float_t, ndim=1] ssa, ssb
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ssa, ssb
         cdef double sa, sb
         if isinstance(a, QuaternionArray) and isinstance(b, QuaternionArray):
             qqa, qqb = a, b
@@ -610,7 +610,7 @@ cdef class QuaternionArray:
         cdef QuaternionArray result
         cdef QuaternionArray qqa, qqb
         cdef Quaternion qa, qb
-        cdef np.ndarray[np.float_t, ndim=1] ssa, ssb
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ssa, ssb
         cdef double sa, sb
         if isinstance(a, QuaternionArray) and isinstance(b, QuaternionArray):
             qqa, qqb = a, b
@@ -658,7 +658,7 @@ cdef class QuaternionArray:
         cdef QuaternionArray result
         cdef QuaternionArray qqa, qqb
         cdef Quaternion qa, qb
-        cdef np.ndarray[np.float_t, ndim=1] ssa, ssb
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ssa, ssb
         cdef double sa, sb
         if isinstance(a, QuaternionArray) and isinstance(b, QuaternionArray):
             qqa, qqb = a, b
@@ -704,7 +704,7 @@ cdef class QuaternionArray:
         cdef QuaternionArray result
         cdef QuaternionArray qqa, qqb
         cdef Quaternion qa, qb
-        cdef np.ndarray[np.float_t, ndim=1] ssa, ssb
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ssa, ssb
         cdef double sa, sb
         if isinstance(a, QuaternionArray) and isinstance(b, QuaternionArray):
             qqa, qqb = a, b
@@ -754,7 +754,7 @@ cdef class QuaternionArray:
         cdef QuaternionArray result
         cdef QuaternionArray qqa, qqb
         cdef Quaternion qa, qb
-        cdef np.ndarray[np.float_t, ndim=1] ssb
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ssb
         cdef double sa, sb
         if isinstance(a, QuaternionArray) and isinstance(b, QuaternionArray):
             qqa, qqb = a, b
@@ -814,7 +814,7 @@ cdef class QuaternionArray:
 
     def dot(QuaternionArray self, other):
         """ Dot prodct of these quaternions with another quaternion or quaternion array. """
-        cdef np.ndarray[np.float_t, ndim=1] result = np.empty(self.length)
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] result = np.empty(self.length)
         cdef QuaternionArray qqo
         cdef Quaternion qo
         if isinstance(other, QuaternionArray):
@@ -834,7 +834,7 @@ cdef class QuaternionArray:
     def __iadd__(QuaternionArray self, other):
         cdef QuaternionArray qqo
         cdef Quaternion qo
-        cdef np.ndarray[np.float_t, ndim=1] sso
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] sso
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
@@ -855,7 +855,7 @@ cdef class QuaternionArray:
     def __isub__(QuaternionArray self, other):
         cdef QuaternionArray qqo
         cdef Quaternion qo
-        cdef np.ndarray[np.float_t, ndim=1] sso
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] sso
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
@@ -876,7 +876,7 @@ cdef class QuaternionArray:
     def __imul__(QuaternionArray self, other):
         cdef QuaternionArray qqo
         cdef Quaternion qo
-        cdef np.ndarray[np.float_t, ndim=1] sso
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] sso
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
@@ -897,7 +897,7 @@ cdef class QuaternionArray:
     def __idiv__(QuaternionArray self, other):
         cdef QuaternionArray qqo
         cdef Quaternion qo
-        cdef np.ndarray[np.float_t, ndim=1] sso
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] sso
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
@@ -920,7 +920,7 @@ cdef class QuaternionArray:
     def __ipow__(QuaternionArray self, other):
         cdef QuaternionArray qqo
         cdef Quaternion qo
-        cdef np.ndarray[np.float_t, ndim=1] sso
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] sso
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
