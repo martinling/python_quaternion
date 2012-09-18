@@ -522,9 +522,14 @@ cdef class QuaternionArray:
         return QuaternionArray(self.components.copy())
 
     @classmethod
+    def empty(cls, length):
+        """ Create an empty QuaternionArray with a given length. """
+        return QuaternionArray(np.empty((length, 4)))
+
+    @classmethod
     def like(cls, ref):
         """ Create an empty QuaternionArray with the length of an existing sequence. """
-        return QuaternionArray(np.empty((len(ref), 4)))
+        return QuaternionArray.empty(len(ref))
 
     __copy__ = copy
 
@@ -941,3 +946,66 @@ cdef class QuaternionArray:
         for i in range(self.length):
             quaternion_negative(&self.values[i], &self.values[i])
         return self
+
+    def rotate_vector(QuaternionArray self, v):
+        """
+        Use these quaternions to rotate a vector or array of vectors.
+        """
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] result = np.empty((self.length, 3))
+        if np.ndim(v) == 2:
+            assert np.shape(v) == (self.length, 3), \
+                "Vectors must have shape (N, 3) matching array length"
+            vec2d = np.asarray(v, dtype=np.float)
+            for i in range(self.length):
+                quaternion_rotate_vector(&self.values[i],
+                    <double *> &vec2d[i, 0], <double *> &result[i, 0])
+        else:
+            assert np.shape(v) == (3,), "Vector must have length 3"
+            vec1d = np.asarray(v, dtype=float)
+            for i in range(self.length):
+                quaternion_rotate_vector(&self.values[i],
+                    <double *> &vec1d[0], <double *> &result[i, 0])
+        return result
+
+    def rotate_frame(QuaternionArray self, v):
+        """
+        Use these quaternions to rotate the co-ordinate frame of a vector or array of vectors.
+        """
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] result = np.empty((self.length, 3))
+        if np.ndim(v) == 2:
+            assert np.shape(v) == (self.length, 3), \
+                "Vectors must have shape (N, 3) matching array length"
+            vec2d = np.asarray(v, dtype=np.float)
+            for i in range(self.length):
+                quaternion_rotate_frame(&self.values[i],
+                    <double *> &vec2d[i, 0], <double *> &result[i, 0])
+        else:
+            assert np.shape(v) == (3,), "Vector must have length 3"
+            vec1d = np.asarray(v, dtype=float)
+            for i in range(self.length):
+                quaternion_rotate_frame(&self.values[i],
+                    <double *> &vec1d[0], <double *> &result[i, 0])
+        return result
+
+    # Conversions to and from other rotation formats.
+
+    @classmethod
+    def from_euler(cls, char *order, angles):
+        shape = np.shape(angles)
+        assert len(shape) == 2 and shape[1] == len(order), \
+            "Angles must have shape (N, len(order))"
+        cdef QuaternionArray result = QuaternionArray.empty(shape[0])
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] ang = np.asarray(angles, dtype=np.float)
+        for i in range(len(angles)):
+            quaternion_from_euler(order, <double *> &ang[i, 0], &result.values[i])
+        return result
+
+    def to_euler(QuaternionArray self, char *order):
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] result = np.zeros((self.length, len(order)))
+        for i in range(self.length):
+            quaternion_to_euler(&self.values[i], order, <double *> &result[i, 0])
+        return result
