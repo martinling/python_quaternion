@@ -417,9 +417,17 @@ cdef class QuaternionArray:
 
     def __cinit__(QuaternionArray self, values):
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] components
-        assert np.ndim(values) == 2 and np.shape(values)[1] == 4, \
-            "Values must have shape (N, 4)"
-        components = np.asarray(values, dtype=np.float, order='C')
+        if np.ndim(values) == 2:
+            assert np.shape(values)[1] == 4, \
+                "Expected components of shape (N, 4) or a sequence of quaternions"
+            components = np.asarray(values, dtype=np.float, order='C')
+        else:
+            assert np.ndim(values) == 1, \
+                "Expected components of shape (N, 4) or a sequence of quaternions"
+            length = len(values)
+            components = np.empty((length, 4))
+            for i in range(length):
+                components[i] = values[i].components
         self._components = components
         self.values = <quaternion *> &components[0, 0]
         self.length = len(components)
