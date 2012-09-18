@@ -115,6 +115,8 @@ cdef class Quaternion:
         """ The (w, x, y, z) components of this quaternion as a tuple. """
         def __get__(Quaternion self):
             return self._components
+        def __set__(Quaternion self, value):
+            self._components[:] = value
 
     property magnitude:
         """ Magnitude of this quaternion. """
@@ -131,7 +133,9 @@ cdef class Quaternion:
     property vector:
         """ The (x, y, z) components of this quaternion as a tuple. """
         def __get__(Quaternion self):
-            return (self.x, self.y, self.z)
+            return self.components[1:]
+        def __set__(Quaternion self, value):
+            self.components[1:] = value
 
     # Identity, comparison and serialization
 
@@ -159,10 +163,10 @@ cdef class Quaternion:
             return NotImplemented
 
     def __getstate__(self):
-        return (self.w, self.x, self.y, self.z)
+        return self.components
 
     def __setstate__(self, state):
-        self.__init__(*state)
+        self.__init__(value=state)
 
     def __reduce__(Quaternion self):
         return (Quaternion, (self.w, self.x, self.y, self.z))
