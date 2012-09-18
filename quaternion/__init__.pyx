@@ -410,7 +410,7 @@ cdef class Quaternion:
 
 cdef class QuaternionArray:
 
-    cdef quaternion *_values
+    cdef quaternion *values
     cdef np.ndarray _components
     cdef unsigned int length
 
@@ -420,7 +420,7 @@ cdef class QuaternionArray:
             "Values must have shape (N, 4)"
         components = np.asarray(values, dtype=np.float, order='C')
         self._components = components
-        self._values = <quaternion *> &components[0, 0]
+        self.values = <quaternion *> &components[0, 0]
         self.length = len(components)
 
     # Sequence operations
@@ -483,7 +483,7 @@ cdef class QuaternionArray:
         def __get__(QuaternionArray self):
             cdef np.ndarray[np.float_t, ndim=1, mode='c'] result = np.empty(self.length)
             for i in range(self.length):
-                result[i] = quaternion_magnitude(&self._values[i])
+                result[i] = quaternion_magnitude(&self.values[i])
             return result
 
     property conjugate:
@@ -491,7 +491,7 @@ cdef class QuaternionArray:
         def __get__(QuaternionArray self):
             cdef QuaternionArray result = QuaternionArray.like(self)
             for i in range(self.length):
-                quaternion_conjugate(&self._values[i], &result._values[i])
+                quaternion_conjugate(&self.values[i], &result.values[i])
             return result
 
     property vector:
@@ -533,13 +533,13 @@ cdef class QuaternionArray:
     def __neg__(QuaternionArray self):
         cdef QuaternionArray result = QuaternionArray.like(self)
         for i in range(self.length):
-            quaternion_negative(&self._values[i], &result._values[i])
+            quaternion_negative(&self.values[i], &result.values[i])
         return result
 
     def __invert__(QuaternionArray self):
         cdef QuaternionArray result = QuaternionArray.like(self)
         for i in range(self.length):
-            quaternion_conjugate(&self._values[i], &result._values[i])
+            quaternion_conjugate(&self.values[i], &result.values[i])
         return result
 
     def __add__(a, b):
@@ -553,37 +553,37 @@ cdef class QuaternionArray:
             assert qqa.length == qqb.length, "Arrays must have equal length"
             result = QuaternionArray.like(qqa)
             for i in range(qqa.length):
-                quaternion_add(&qqa._values[i], &qqb._values[i], &result._values[i])
+                quaternion_add(&qqa.values[i], &qqb.values[i], &result.values[i])
         elif isinstance(a, QuaternionArray):
             qqa = a
             result = QuaternionArray.like(qqa)
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_add(&qqa._values[i], &qb._value, &result._values[i])
+                    quaternion_add(&qqa.values[i], &qb._value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
-                    quaternion_add_scalar(&qqa._values[i], ssb[i], &result._values[i])
+                    quaternion_add_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
                 sb = b
                 for i in range(qqa.length):
-                    quaternion_add_scalar(&qqa._values[i], sb, &result._values[i])
+                    quaternion_add_scalar(&qqa.values[i], sb, &result.values[i])
         elif isinstance(b, QuaternionArray):
             qqb = b
             result = QuaternionArray.like(qqb)
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_add(&qa._value, &qqb._values[i], &result._values[i])
+                    quaternion_add(&qa._value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 ssa = np.asarray(a)
                 for i in range(qqb.length):
-                    quaternion_add_scalar(&qqb._values[i], ssa[i], &result._values[i])
+                    quaternion_add_scalar(&qqb.values[i], ssa[i], &result.values[i])
             else:
                 sa = a
                 for i in range(qqb.length):
-                    quaternion_add_scalar(&qqb._values[i], sa, &result._values[i])
+                    quaternion_add_scalar(&qqb.values[i], sa, &result.values[i])
         else:
             return NotImplemented
         return result
@@ -599,39 +599,39 @@ cdef class QuaternionArray:
             assert qqa.length == qqb.length, "Arrays must have equal length"
             result = QuaternionArray.like(qqa)
             for i in range(qqa.length):
-                quaternion_subtract(&qqa._values[i], &qqb._values[i], &result._values[i])
+                quaternion_subtract(&qqa.values[i], &qqb.values[i], &result.values[i])
         elif isinstance(a, QuaternionArray):
             qqa = a
             result = QuaternionArray.like(qqa)
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_subtract(&qqa._values[i], &qb._value, &result._values[i])
+                    quaternion_subtract(&qqa.values[i], &qb._value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
-                    quaternion_subtract_scalar(&qqa._values[i], ssb[i], &result._values[i])
+                    quaternion_subtract_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
                 sb = b
                 for i in range(qqa.length):
-                    quaternion_subtract_scalar(&qqa._values[i], sb, &result._values[i])
+                    quaternion_subtract_scalar(&qqa.values[i], sb, &result.values[i])
         elif isinstance(b, QuaternionArray):
             qqb = b
             result = QuaternionArray.like(qqb)
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_subtract(&qa._value, &qqb._values[i], &result._values[i])
+                    quaternion_subtract(&qa._value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 ssa = np.asarray(a)
                 for i in range(qqb.length):
-                    quaternion_negative(&qqb._values[i], &result._values[i])
-                    quaternion_add_scalar(&result._values[i], ssa[i], &result._values[i])
+                    quaternion_negative(&qqb.values[i], &result.values[i])
+                    quaternion_add_scalar(&result.values[i], ssa[i], &result.values[i])
             else:
                 sa = a
                 for i in range(qqb.length):
-                    quaternion_negative(&qqb._values[i], &result._values[i])
-                    quaternion_add_scalar(&result._values[i], sa, &result._values[i])
+                    quaternion_negative(&qqb.values[i], &result.values[i])
+                    quaternion_add_scalar(&result.values[i], sa, &result.values[i])
         else:
             return NotImplemented
         return result
@@ -647,37 +647,37 @@ cdef class QuaternionArray:
             assert qqa.length == qqb.length, "Arrays must have equal length"
             result = QuaternionArray.like(qqa)
             for i in range(qqa.length):
-                quaternion_multiply(&qqa._values[i], &qqb._values[i], &result._values[i])
+                quaternion_multiply(&qqa.values[i], &qqb.values[i], &result.values[i])
         elif isinstance(a, QuaternionArray):
             qqa = a
             result = QuaternionArray.like(qqa)
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_multiply(&qqa._values[i], &qb._value, &result._values[i])
+                    quaternion_multiply(&qqa.values[i], &qb._value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
-                    quaternion_multiply_scalar(&qqa._values[i], ssb[i], &result._values[i])
+                    quaternion_multiply_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
                 sb = b
                 for i in range(qqa.length):
-                    quaternion_multiply_scalar(&qqa._values[i], sb, &result._values[i])
+                    quaternion_multiply_scalar(&qqa.values[i], sb, &result.values[i])
         elif isinstance(b, QuaternionArray):
             qqb = b
             result = QuaternionArray.like(qqb)
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_multiply(&qa._value, &qqb._values[i], &result._values[i])
+                    quaternion_multiply(&qa._value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 ssa = np.asarray(a)
                 for i in range(qqb.length):
-                    quaternion_multiply_scalar(&qqb._values[i], ssa[i], &result._values[i])
+                    quaternion_multiply_scalar(&qqb.values[i], ssa[i], &result.values[i])
             else:
                 sa = a
                 for i in range(qqb.length):
-                    quaternion_multiply_scalar(&qqb._values[i], sa, &result._values[i])
+                    quaternion_multiply_scalar(&qqb.values[i], sa, &result.values[i])
         else:
             return NotImplemented
         return result
@@ -693,39 +693,39 @@ cdef class QuaternionArray:
             assert qqa.length == qqb.length, "Arrays must have equal length"
             result = QuaternionArray.like(qqa)
             for i in range(qqa.length):
-                quaternion_divide(&qqa._values[i], &qqb._values[i], &result._values[i])
+                quaternion_divide(&qqa.values[i], &qqb.values[i], &result.values[i])
         elif isinstance(a, QuaternionArray):
             qqa = a
             result = QuaternionArray.like(qqa)
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_divide(&qqa._values[i], &qb._value, &result._values[i])
+                    quaternion_divide(&qqa.values[i], &qb._value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
-                    quaternion_divide_scalar(&qqa._values[i], ssb[i], &result._values[i])
+                    quaternion_divide_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
                 sb = b
                 for i in range(qqa.length):
-                    quaternion_divide_scalar(&qqa._values[i], sb, &result._values[i])
+                    quaternion_divide_scalar(&qqa.values[i], sb, &result.values[i])
         elif isinstance(b, QuaternionArray):
             qqb = b
             result = QuaternionArray.like(qqb)
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_divide(&qa._value, &qqb._values[i], &result._values[i])
+                    quaternion_divide(&qa._value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 ssa = np.asarray(a)
                 for i in range(qqb.length):
-                    quaternion_power_scalar(&qqb._values[i], -1, &result._values[i])
-                    quaternion_multiply_scalar(&result._values[i], ssa[i], &result._values[i])
+                    quaternion_power_scalar(&qqb.values[i], -1, &result.values[i])
+                    quaternion_multiply_scalar(&result.values[i], ssa[i], &result.values[i])
             else:
                 sa = a
                 for i in range(qqb.length):
-                    quaternion_power_scalar(&qqb._values[i], -1, &result._values[i])
-                    quaternion_multiply_scalar(&result._values[i], sa, &result._values[i])
+                    quaternion_power_scalar(&qqb.values[i], -1, &result.values[i])
+                    quaternion_multiply_scalar(&result.values[i], sa, &result.values[i])
         else:
             return NotImplemented
         return result
@@ -743,39 +743,39 @@ cdef class QuaternionArray:
             assert qqa.length == qqb.length, "Arrays must have equal length"
             result = QuaternionArray.like(qqa)
             for i in range(qqa.length):
-                quaternion_power(&qqa._values[i], &qqb._values[i], &result._values[i])
+                quaternion_power(&qqa.values[i], &qqb.values[i], &result.values[i])
         elif isinstance(a, QuaternionArray):
             qqa = a
             result = QuaternionArray.like(qqa)
             if isinstance(b, Quaternion):
                 qb = b
                 for i in range(qqa.length):
-                    quaternion_power(&qqa._values[i], &qb._value, &result._values[i])
+                    quaternion_power(&qqa.values[i], &qb._value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
                 ssb = np.asarray(b)
                 for i in range(qqa.length):
-                    quaternion_power_scalar(&qqa._values[i], ssb[i], &result._values[i])
+                    quaternion_power_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
                 sb = b
                 for i in range(qqa.length):
-                    quaternion_power_scalar(&qqa._values[i], sb, &result._values[i])
+                    quaternion_power_scalar(&qqa.values[i], sb, &result.values[i])
         elif isinstance(b, QuaternionArray):
             qqb = b
             result = QuaternionArray.like(qqb)
             if isinstance(a, Quaternion):
                 qa = a
                 for i in range(qqb.length):
-                    quaternion_power(&qa._value, &qqb._values[i], &result._values[i])
+                    quaternion_power(&qa._value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
                 qqa = QuaternionArray.like(qqb)
                 qqa.w = a
                 qqa.vector = 0
                 for i in range(qqb.length):
-                    quaternion_power(&qqa._values[i], &qqb._values[i], &result._values[i])
+                    quaternion_power(&qqa.values[i], &qqb.values[i], &result.values[i])
             else:
                 qa = Quaternion(a, 0, 0, 0)
                 for i in range(qqb.length):
-                    quaternion_power(&qa._value, &qqb._values[i], &result._values[i])
+                    quaternion_power(&qa._value, &qqb.values[i], &result.values[i])
         else:
             return NotImplemented
         return result
@@ -784,14 +784,14 @@ cdef class QuaternionArray:
         """ Natural logarithms of these quaternions. """
         cdef QuaternionArray result = QuaternionArray.like(self)
         for i in range(self.length):
-            quaternion_log(&self._values[i], &result._values[i])
+            quaternion_log(&self.values[i], &result.values[i])
         return result
 
     def exp(QuaternionArray self):
         """ Exponentials of these quaternions. """
         cdef QuaternionArray result = QuaternionArray.like(self)
         for i in range(self.length):
-            quaternion_exp(&self._values[i], &result._values[i])
+            quaternion_exp(&self.values[i], &result.values[i])
         return result
 
     def dot(QuaternionArray self, other):
@@ -802,11 +802,11 @@ cdef class QuaternionArray:
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
-                result[i] = quaternion_dot(&self._values[i], &qqo._values[i])
+                result[i] = quaternion_dot(&self.values[i], &qqo.values[i])
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                result[i] = quaternion_dot(&self._values[i], &qo._value)
+                result[i] = quaternion_dot(&self.values[i], &qo._value)
         else:
             return NotImplemented
         return result
@@ -820,18 +820,18 @@ cdef class QuaternionArray:
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
-                quaternion_add(&self._values[i], &qqo._values[i], &self._values[i])
+                quaternion_add(&self.values[i], &qqo.values[i], &self.values[i])
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_add(&self._values[i], &qo._value, &self._values[i])
+                quaternion_add(&self.values[i], &qo._value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
-                quaternion_add_scalar(&self._values[i], sso[i], &self._values[i])
+                quaternion_add_scalar(&self.values[i], sso[i], &self.values[i])
         else:
             for i in range(self.length):
-                quaternion_add_scalar(&self._values[i], other, &self._values[i])
+                quaternion_add_scalar(&self.values[i], other, &self.values[i])
         return self
 
     def __isub__(QuaternionArray self, other):
@@ -841,18 +841,18 @@ cdef class QuaternionArray:
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
-                quaternion_subtract(&self._values[i], &qqo._values[i], &self._values[i])
+                quaternion_subtract(&self.values[i], &qqo.values[i], &self.values[i])
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_subtract(&self._values[i], &qo._value, &self._values[i])
+                quaternion_subtract(&self.values[i], &qo._value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
-                quaternion_subtract_scalar(&self._values[i], sso[i], &self._values[i])
+                quaternion_subtract_scalar(&self.values[i], sso[i], &self.values[i])
         else:
             for i in range(self.length):
-                quaternion_subtract_scalar(&self._values[i], other, &self._values[i])
+                quaternion_subtract_scalar(&self.values[i], other, &self.values[i])
         return self
 
     def __imul__(QuaternionArray self, other):
@@ -862,18 +862,18 @@ cdef class QuaternionArray:
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
-                quaternion_multiply(&self._values[i], &qqo._values[i], &self._values[i])
+                quaternion_multiply(&self.values[i], &qqo.values[i], &self.values[i])
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_multiply(&self._values[i], &qo._value, &self._values[i])
+                quaternion_multiply(&self.values[i], &qo._value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
-                quaternion_multiply_scalar(&self._values[i], sso[i], &self._values[i])
+                quaternion_multiply_scalar(&self.values[i], sso[i], &self.values[i])
         else:
             for i in range(self.length):
-                quaternion_multiply_scalar(&self._values[i], other, &self._values[i])
+                quaternion_multiply_scalar(&self.values[i], other, &self.values[i])
         return self
 
     def __idiv__(QuaternionArray self, other):
@@ -883,18 +883,18 @@ cdef class QuaternionArray:
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
-                quaternion_divide(&self._values[i], &qqo._values[i], &self._values[i])
+                quaternion_divide(&self.values[i], &qqo.values[i], &self.values[i])
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_divide(&self._values[i], &qo._value, &self._values[i])
+                quaternion_divide(&self.values[i], &qo._value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
-                quaternion_divide_scalar(&self._values[i], sso[i], &self._values[i])
+                quaternion_divide_scalar(&self.values[i], sso[i], &self.values[i])
         else:
             for i in range(self.length):
-                quaternion_divide_scalar(&self._values[i], other, &self._values[i])
+                quaternion_divide_scalar(&self.values[i], other, &self.values[i])
         return self
 
     __itruediv__ = __idiv__
@@ -906,29 +906,29 @@ cdef class QuaternionArray:
         if isinstance(other, QuaternionArray):
             qqo = other
             for i in range(self.length):
-                quaternion_power(&self._values[i], &qqo._values[i], &self._values[i])
+                quaternion_power(&self.values[i], &qqo.values[i], &self.values[i])
         elif isinstance(other, Quaternion):
             qo = other
             for i in range(self.length):
-                quaternion_power(&self._values[i], &qo._value, &self._values[i])
+                quaternion_power(&self.values[i], &qo._value, &self.values[i])
         elif np.shape(other) == (self.length,):
             sso = np.asarray(other)
             for i in range(self.length):
-                quaternion_power_scalar(&self._values[i], sso[i], &self._values[i])
+                quaternion_power_scalar(&self.values[i], sso[i], &self.values[i])
         else:
             for i in range(self.length):
-                quaternion_power_scalar(&self._values[i], other, &self._values[i])
+                quaternion_power_scalar(&self.values[i], other, &self.values[i])
         return self
 
     def normalise(QuaternionArray self):
         """ Normalise these quaternions to unit length. """
         for i in range(self.length):
-            quaternion_multiply_scalar(&self._values[i],
-                1 / quaternion_magnitude(&self._values[i]), &self._values[i])
+            quaternion_multiply_scalar(&self.values[i],
+                1 / quaternion_magnitude(&self.values[i]), &self.values[i])
         return self
 
     def negate(Quaternion self):
         """ Negate these quaternions. """
         for i in range(self.length):
-            quaternion_negative(&self._values[i], &self._values[i])
+            quaternion_negative(&self.values[i], &self.values[i])
         return self
