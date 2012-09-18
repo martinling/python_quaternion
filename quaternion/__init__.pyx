@@ -66,13 +66,6 @@ cdef extern from "quaternion.h":
     void quaternion_from_euler(char *order, double angles[3], quaternion *r)
     void quaternion_to_euler(quaternion *q, char *order, double r[3])
 
-cdef extern from "stdlib.h":
-    void *malloc(size_t size)
-    void free(void *ptr)
-
-cdef extern from "string.h":
-    size_t strlen(char *s)
-
 cdef class Quaternion:
 
     cdef quaternion _value
