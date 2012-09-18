@@ -185,10 +185,10 @@ cdef class Quaternion:
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
             quaternion_add(&qa._value, &qb._value, &result._value)
-        elif isinstance(a, Quaternion):
+        elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
             quaternion_add_scalar(&qa._value, sb, &result._value)
-        elif isinstance(b, Quaternion):
+        elif np.isscalar(a) and isinstance(b, Quaternion):
             sa, qb = a, b
             quaternion_add_scalar(&qb._value, sa, &result._value)
         else:
@@ -202,10 +202,10 @@ cdef class Quaternion:
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
             quaternion_subtract(&qa._value, &qb._value, &result._value)
-        elif isinstance(a, Quaternion):
+        elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
             quaternion_subtract_scalar(&qa._value, sb, &result._value)
-        elif isinstance(b, Quaternion):
+        elif np.isscalar(a) and isinstance(b, Quaternion):
             sa, qb = a, b
             quaternion_negative(&qb._value, &result._value)
             quaternion_add_scalar(&result._value, sa, &result._value)
@@ -220,10 +220,10 @@ cdef class Quaternion:
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
             quaternion_multiply(&qa._value, &qb._value, &result._value)
-        elif isinstance(a, Quaternion):
+        elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
             quaternion_multiply_scalar(&qa._value, sb, &result._value)
-        elif isinstance(b, Quaternion):
+        elif np.isscalar(a) and isinstance(b, Quaternion):
             sa, qb = a, b
             quaternion_multiply_scalar(&qb._value, sa, &result._value)
         else:
@@ -237,10 +237,10 @@ cdef class Quaternion:
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
             quaternion_divide(&qa._value, &qb._value, &result._value)
-        elif isinstance(a, Quaternion):
+        elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
             quaternion_divide_scalar(&qa._value, sb, &result._value)
-        elif isinstance(b, Quaternion):
+        elif np.isscalar(a) and isinstance(b, Quaternion):
             sa, qb = a, b
             quaternion_power_scalar(&qb._value, -1, &result._value)
             quaternion_multiply_scalar(&result._value, sa, &result._value)
@@ -257,10 +257,10 @@ cdef class Quaternion:
         if isinstance(a, Quaternion) and isinstance(b, Quaternion):
             qa, qb = a, b
             quaternion_power(&qa._value, &qb._value, &result._value)
-        elif isinstance(a, Quaternion):
+        elif isinstance(a, Quaternion) and np.isscalar(b):
             qa, sb = a, b
             quaternion_power_scalar(&qa._value, sb, &result._value)
-        elif isinstance(b, Quaternion):
+        elif np.isscalar(a) and isinstance(b, Quaternion):
             qa, qb = Quaternion(a, 0, 0, 0), b
             quaternion_power(&qa._value, &qb._value, &result._value)
         else:
