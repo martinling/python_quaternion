@@ -77,7 +77,7 @@ cdef class Quaternion:
             components = np.array((w, x, y, z))
         else:
             assert np.shape(value) == (4,), "Component array must have length 4"
-            components = np.asarray(value, dtype=np.float, order='C')
+            components = np.asanyarray(value, dtype=np.float, order='C')
         self._components = components
         self.value = <quaternion *> &components[0]
 
@@ -359,7 +359,7 @@ cdef class Quaternion:
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
         if np.ndim(v) == 2:
-            vec2d = np.asarray(v, dtype=np.float)
+            vec2d = np.asanyarray(v, dtype=np.float)
             assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
             res2d = np.empty_like(vec2d)
             for i in range(len(v)):
@@ -368,7 +368,7 @@ cdef class Quaternion:
             return res2d
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
-            vec1d = np.asarray(v, dtype=float)
+            vec1d = np.asanyarray(v, dtype=float)
             res1d = np.empty_like(vec1d)
             quaternion_rotate_vector(self.value,
                 <double *> &vec1d[0], <double *> &res1d[0])
@@ -383,7 +383,7 @@ cdef class Quaternion:
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
         if np.ndim(v) == 2:
-            vec2d = np.asarray(v, dtype=np.float)
+            vec2d = np.asanyarray(v, dtype=np.float)
             assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
             res2d = np.empty_like(vec2d)
             for i in range(len(v)):
@@ -392,7 +392,7 @@ cdef class Quaternion:
             return res2d
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
-            vec1d = np.asarray(v, dtype=np.float)
+            vec1d = np.asanyarray(v, dtype=np.float)
             res1d = np.empty_like(vec1d)
             quaternion_rotate_frame(self.value,
                 <double *> &vec1d[0], <double *> &res1d[0])
@@ -404,7 +404,7 @@ cdef class Quaternion:
     def from_euler(cls, char *order, angles):
         cdef Quaternion result = Quaternion()
         assert len(order) == len(angles), "Order and angles must have same length"
-        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ang = np.asarray(angles, dtype=np.float)
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ang = np.asanyarray(angles, dtype=np.float)
         quaternion_from_euler(order, <double *> &ang[0], result.value)
         return result
 
@@ -424,7 +424,7 @@ cdef class QuaternionArray:
         if np.ndim(values) == 2:
             assert np.shape(values)[1] == 4, \
                 "Expected components of shape (N, 4) or a sequence of quaternions"
-            components = np.asarray(values, dtype=np.float, order='C')
+            components = np.asanyarray(values, dtype=np.float, order='C')
         else:
             assert np.ndim(values) == 1, \
                 "Expected components of shape (N, 4) or a sequence of quaternions"
@@ -580,7 +580,7 @@ cdef class QuaternionArray:
                 for i in range(qqa.length):
                     quaternion_add(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
-                ssb = np.asarray(b)
+                ssb = np.asanyarray(b)
                 for i in range(qqa.length):
                     quaternion_add_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
@@ -595,7 +595,7 @@ cdef class QuaternionArray:
                 for i in range(qqb.length):
                     quaternion_add(qa.value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
-                ssa = np.asarray(a)
+                ssa = np.asanyarray(a)
                 for i in range(qqb.length):
                     quaternion_add_scalar(&qqb.values[i], ssa[i], &result.values[i])
             else:
@@ -626,7 +626,7 @@ cdef class QuaternionArray:
                 for i in range(qqa.length):
                     quaternion_subtract(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
-                ssb = np.asarray(b)
+                ssb = np.asanyarray(b)
                 for i in range(qqa.length):
                     quaternion_subtract_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
@@ -641,7 +641,7 @@ cdef class QuaternionArray:
                 for i in range(qqb.length):
                     quaternion_subtract(qa.value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
-                ssa = np.asarray(a)
+                ssa = np.asanyarray(a)
                 for i in range(qqb.length):
                     quaternion_negative(&qqb.values[i], &result.values[i])
                     quaternion_add_scalar(&result.values[i], ssa[i], &result.values[i])
@@ -674,7 +674,7 @@ cdef class QuaternionArray:
                 for i in range(qqa.length):
                     quaternion_multiply(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
-                ssb = np.asarray(b)
+                ssb = np.asanyarray(b)
                 for i in range(qqa.length):
                     quaternion_multiply_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
@@ -689,7 +689,7 @@ cdef class QuaternionArray:
                 for i in range(qqb.length):
                     quaternion_multiply(qa.value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
-                ssa = np.asarray(a)
+                ssa = np.asanyarray(a)
                 for i in range(qqb.length):
                     quaternion_multiply_scalar(&qqb.values[i], ssa[i], &result.values[i])
             else:
@@ -720,7 +720,7 @@ cdef class QuaternionArray:
                 for i in range(qqa.length):
                     quaternion_divide(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
-                ssb = np.asarray(b)
+                ssb = np.asanyarray(b)
                 for i in range(qqa.length):
                     quaternion_divide_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
@@ -735,7 +735,7 @@ cdef class QuaternionArray:
                 for i in range(qqb.length):
                     quaternion_divide(qa.value, &qqb.values[i], &result.values[i])
             elif np.shape(a) == (qqb.length,):
-                ssa = np.asarray(a)
+                ssa = np.asanyarray(a)
                 for i in range(qqb.length):
                     quaternion_power_scalar(&qqb.values[i], -1, &result.values[i])
                     quaternion_multiply_scalar(&result.values[i], ssa[i], &result.values[i])
@@ -770,7 +770,7 @@ cdef class QuaternionArray:
                 for i in range(qqa.length):
                     quaternion_power(&qqa.values[i], qb.value, &result.values[i])
             elif np.shape(b) == (qqa.length,):
-                ssb = np.asarray(b)
+                ssb = np.asanyarray(b)
                 for i in range(qqa.length):
                     quaternion_power_scalar(&qqa.values[i], ssb[i], &result.values[i])
             else:
@@ -844,7 +844,7 @@ cdef class QuaternionArray:
             for i in range(self.length):
                 quaternion_add(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
-            sso = np.asarray(other)
+            sso = np.asanyarray(other)
             for i in range(self.length):
                 quaternion_add_scalar(&self.values[i], sso[i], &self.values[i])
         else:
@@ -865,7 +865,7 @@ cdef class QuaternionArray:
             for i in range(self.length):
                 quaternion_subtract(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
-            sso = np.asarray(other)
+            sso = np.asanyarray(other)
             for i in range(self.length):
                 quaternion_subtract_scalar(&self.values[i], sso[i], &self.values[i])
         else:
@@ -886,7 +886,7 @@ cdef class QuaternionArray:
             for i in range(self.length):
                 quaternion_multiply(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
-            sso = np.asarray(other)
+            sso = np.asanyarray(other)
             for i in range(self.length):
                 quaternion_multiply_scalar(&self.values[i], sso[i], &self.values[i])
         else:
@@ -907,7 +907,7 @@ cdef class QuaternionArray:
             for i in range(self.length):
                 quaternion_divide(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
-            sso = np.asarray(other)
+            sso = np.asanyarray(other)
             for i in range(self.length):
                 quaternion_divide_scalar(&self.values[i], sso[i], &self.values[i])
         else:
@@ -930,7 +930,7 @@ cdef class QuaternionArray:
             for i in range(self.length):
                 quaternion_power(&self.values[i], qo.value, &self.values[i])
         elif np.shape(other) == (self.length,):
-            sso = np.asarray(other)
+            sso = np.asanyarray(other)
             for i in range(self.length):
                 quaternion_power_scalar(&self.values[i], sso[i], &self.values[i])
         else:
@@ -961,13 +961,13 @@ cdef class QuaternionArray:
         if np.ndim(v) == 2:
             assert np.shape(v) == (self.length, 3), \
                 "Vectors must have shape (N, 3) matching array length"
-            vec2d = np.asarray(v, dtype=np.float)
+            vec2d = np.asanyarray(v, dtype=np.float)
             for i in range(self.length):
                 quaternion_rotate_vector(&self.values[i],
                     <double *> &vec2d[i, 0], <double *> &result[i, 0])
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
-            vec1d = np.asarray(v, dtype=float)
+            vec1d = np.asanyarray(v, dtype=float)
             for i in range(self.length):
                 quaternion_rotate_vector(&self.values[i],
                     <double *> &vec1d[0], <double *> &result[i, 0])
@@ -983,13 +983,13 @@ cdef class QuaternionArray:
         if np.ndim(v) == 2:
             assert np.shape(v) == (self.length, 3), \
                 "Vectors must have shape (N, 3) matching array length"
-            vec2d = np.asarray(v, dtype=np.float)
+            vec2d = np.asanyarray(v, dtype=np.float)
             for i in range(self.length):
                 quaternion_rotate_frame(&self.values[i],
                     <double *> &vec2d[i, 0], <double *> &result[i, 0])
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
-            vec1d = np.asarray(v, dtype=float)
+            vec1d = np.asanyarray(v, dtype=float)
             for i in range(self.length):
                 quaternion_rotate_frame(&self.values[i],
                     <double *> &vec1d[0], <double *> &result[i, 0])
@@ -1003,7 +1003,7 @@ cdef class QuaternionArray:
         assert len(shape) == 2 and shape[1] == len(order), \
             "Angles must have shape (N, len(order))"
         cdef QuaternionArray result = QuaternionArray.empty(shape[0])
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] ang = np.asarray(angles, dtype=np.float)
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] ang = np.asanyarray(angles, dtype=np.float)
         for i in range(len(angles)):
             quaternion_from_euler(order, <double *> &ang[i, 0], &result.values[i])
         return result
