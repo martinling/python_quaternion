@@ -289,7 +289,7 @@ quaternion_rotate_vector(const quaternion *q, const double v[3], double r[3])
 void
 quaternion_rotate_frame(const quaternion *q, const double v[3], double r[3])
 {
-   double W = q->x * v[0] + q->y * v[1] - q->z * v[2];
+   double W = q->x * v[0] + q->y * v[1] + q->z * v[2];
    double X = q->w * v[0] - q->y * v[2] + q->z * v[1];
    double Y = q->w * v[1] + q->x * v[2] - q->z * v[0];
    double Z = q->w * v[2] - q->x * v[1] + q->y * v[0];
