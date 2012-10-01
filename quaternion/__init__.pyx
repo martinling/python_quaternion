@@ -359,7 +359,7 @@ cdef class Quaternion:
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
         if np.ndim(v) == 2:
-            vec2d = np.asanyarray(v, dtype=np.float)
+            vec2d = np.asanyarray(v, dtype=np.float, order='C')
             assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
             res2d = np.empty_like(vec2d)
             for i in range(len(v)):
@@ -368,7 +368,7 @@ cdef class Quaternion:
             return res2d
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
-            vec1d = np.asanyarray(v, dtype=float)
+            vec1d = np.asanyarray(v, dtype=float, order='C')
             res1d = np.empty_like(vec1d)
             quaternion_rotate_vector(self.value,
                 <double *> &vec1d[0], <double *> &res1d[0])
@@ -383,7 +383,7 @@ cdef class Quaternion:
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
         if np.ndim(v) == 2:
-            vec2d = np.asanyarray(v, dtype=np.float)
+            vec2d = np.asanyarray(v, dtype=np.float, order='C')
             assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
             res2d = np.empty_like(vec2d)
             for i in range(len(v)):
@@ -392,7 +392,7 @@ cdef class Quaternion:
             return res2d
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
-            vec1d = np.asanyarray(v, dtype=np.float)
+            vec1d = np.asanyarray(v, dtype=np.float, order='C')
             res1d = np.empty_like(vec1d)
             quaternion_rotate_frame(self.value,
                 <double *> &vec1d[0], <double *> &res1d[0])
@@ -404,7 +404,7 @@ cdef class Quaternion:
     def from_euler(cls, char *order, angles):
         cdef Quaternion result = Quaternion()
         assert len(order) == len(angles), "Order and angles must have same length"
-        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ang = np.asanyarray(angles, dtype=np.float)
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ang = np.asanyarray(angles, dtype=np.float, order='C')
         quaternion_from_euler(order, <double *> &ang[0], result.value)
         return result
 
@@ -961,13 +961,13 @@ cdef class QuaternionArray:
         if np.ndim(v) == 2:
             assert np.shape(v) == (self.length, 3), \
                 "Vectors must have shape (N, 3) matching array length"
-            vec2d = np.asanyarray(v, dtype=np.float)
+            vec2d = np.asanyarray(v, dtype=np.float, order='C')
             for i in range(self.length):
                 quaternion_rotate_vector(&self.values[i],
                     <double *> &vec2d[i, 0], <double *> &result[i, 0])
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
-            vec1d = np.asanyarray(v, dtype=float)
+            vec1d = np.asanyarray(v, dtype=float, order='C')
             for i in range(self.length):
                 quaternion_rotate_vector(&self.values[i],
                     <double *> &vec1d[0], <double *> &result[i, 0])
@@ -983,13 +983,13 @@ cdef class QuaternionArray:
         if np.ndim(v) == 2:
             assert np.shape(v) == (self.length, 3), \
                 "Vectors must have shape (N, 3) matching array length"
-            vec2d = np.asanyarray(v, dtype=np.float)
+            vec2d = np.asanyarray(v, dtype=np.float, order='C')
             for i in range(self.length):
                 quaternion_rotate_frame(&self.values[i],
                     <double *> &vec2d[i, 0], <double *> &result[i, 0])
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
-            vec1d = np.asanyarray(v, dtype=float)
+            vec1d = np.asanyarray(v, dtype=float, order='C')
             for i in range(self.length):
                 quaternion_rotate_frame(&self.values[i],
                     <double *> &vec1d[0], <double *> &result[i, 0])
