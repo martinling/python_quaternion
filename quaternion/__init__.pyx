@@ -356,15 +356,15 @@ cdef class Quaternion:
         """
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] res1d
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] vec2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] res2d
         if np.ndim(v) == 2:
-            vec2d = np.asanyarray(v, dtype=np.float, order='C')
-            assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
+            vec2d = np.asanyarray(v, dtype=np.float, order='F')
+            assert vec2d.shape[0] == 3, "Vectors must have shape (3, N)"
             res2d = np.empty_like(vec2d)
-            for i in range(len(v)):
+            for i in range(vec2d.shape[1]):
                 quaternion_rotate_vector(self.value,
-                    <double *> &vec2d[i, 0], <double *> &res2d[i, 0])
+                    <double *> &vec2d[0, i], <double *> &res2d[0, i])
             return res2d
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
@@ -380,15 +380,15 @@ cdef class Quaternion:
         """
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] res1d
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] res2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] vec2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] res2d
         if np.ndim(v) == 2:
-            vec2d = np.asanyarray(v, dtype=np.float, order='C')
-            assert vec2d.shape[1] == 3, "Vectors must have shape (N, 3)"
+            vec2d = np.asanyarray(v, dtype=np.float, order='F')
+            assert vec2d.shape[0] == 3, "Vectors must have shape (3, N)"
             res2d = np.empty_like(vec2d)
-            for i in range(len(v)):
+            for i in range(vec2d.shape[1]):
                 quaternion_rotate_frame(self.value,
-                    <double *> &vec2d[i, 0], <double *> &res2d[i, 0])
+                    <double *> &vec2d[0, i], <double *> &res2d[0, i])
             return res2d
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
@@ -956,21 +956,21 @@ cdef class QuaternionArray:
         Use these quaternions to rotate a vector or array of vectors.
         """
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] result = np.empty((self.length, 3))
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] vec2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] result = np.empty((3, self.length), order='F')
         if np.ndim(v) == 2:
-            assert np.shape(v) == (self.length, 3), \
-                "Vectors must have shape (N, 3) matching array length"
-            vec2d = np.asanyarray(v, dtype=np.float, order='C')
+            assert np.shape(v) == (3, self.length), \
+                "Vectors must have shape (3, N) matching array length"
+            vec2d = np.asanyarray(v, dtype=np.float, order='F')
             for i in range(self.length):
                 quaternion_rotate_vector(&self.values[i],
-                    <double *> &vec2d[i, 0], <double *> &result[i, 0])
+                    <double *> &vec2d[0, i], <double *> &result[0, i])
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
             vec1d = np.asanyarray(v, dtype=float, order='C')
             for i in range(self.length):
                 quaternion_rotate_vector(&self.values[i],
-                    <double *> &vec1d[0], <double *> &result[i, 0])
+                    <double *> &vec1d[0], <double *> &result[0, i])
         return result
 
     def rotate_frame(QuaternionArray self, v):
@@ -978,21 +978,21 @@ cdef class QuaternionArray:
         Use these quaternions to rotate the co-ordinate frame of a vector or array of vectors.
         """
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] vec2d
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] result = np.empty((self.length, 3))
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] vec2d
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] result = np.empty((self.length, 3), order='F')
         if np.ndim(v) == 2:
-            assert np.shape(v) == (self.length, 3), \
-                "Vectors must have shape (N, 3) matching array length"
-            vec2d = np.asanyarray(v, dtype=np.float, order='C')
+            assert np.shape(v) == (3, self.length), \
+                "Vectors must have shape (3, N) matching array length"
+            vec2d = np.asanyarray(v, dtype=np.float, order='F')
             for i in range(self.length):
                 quaternion_rotate_frame(&self.values[i],
-                    <double *> &vec2d[i, 0], <double *> &result[i, 0])
+                    <double *> &vec2d[i, 0], <double *> &result[0, i])
         else:
             assert np.shape(v) == (3,), "Vector must have length 3"
             vec1d = np.asanyarray(v, dtype=float, order='C')
             for i in range(self.length):
                 quaternion_rotate_frame(&self.values[i],
-                    <double *> &vec1d[0], <double *> &result[i, 0])
+                    <double *> &vec1d[0], <double *> &result[0, i])
         return result
 
     # Conversions to and from other rotation formats.
