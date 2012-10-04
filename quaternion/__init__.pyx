@@ -958,20 +958,27 @@ cdef class QuaternionArray:
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
         cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] vec2d
         cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] result = np.empty((3, self.length), order='F')
-        if np.ndim(v) == 2:
-            assert np.shape(v) == (3, self.length), \
-                "Vectors must have shape (3, N) matching array length"
+        shape = np.shape(v)
+        if shape == (3, self.length):
             vec2d = np.asanyarray(v, dtype=np.float, order='F')
             for i in range(self.length):
                 quaternion_rotate_vector(&self.values[i],
                     <double *> &vec2d[0, i], <double *> &result[0, i])
-        else:
-            assert np.shape(v) == (3,), "Vector must have length 3"
+            return result.view(type(vec2d))
+        elif shape == (3, 1):
+            vec2d = np.asanyarray(v, dtype=np.float, order='F')
+            for i in range(self.length):
+                quaternion_rotate_vector(&self.values[i],
+                    <double *> &vec2d[0, 0], <double *> &result[0, i])
+            return result.view(type(vec2d))
+        elif shape == (3,):
             vec1d = np.asanyarray(v, dtype=float, order='C')
             for i in range(self.length):
                 quaternion_rotate_vector(&self.values[i],
                     <double *> &vec1d[0], <double *> &result[0, i])
-        return result
+            return result.view(type(vec1d))
+        else:
+            raise TypeError, "Vector(s) must have shape (3), (3, 1) or (3, N) to rotate by N quaternions" 
 
     def rotate_frame(QuaternionArray self, v):
         """
@@ -979,21 +986,28 @@ cdef class QuaternionArray:
         """
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec1d
         cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] vec2d
-        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] result = np.empty((self.length, 3), order='F')
-        if np.ndim(v) == 2:
-            assert np.shape(v) == (3, self.length), \
-                "Vectors must have shape (3, N) matching array length"
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] result = np.empty((3, self.length), order='F')
+        shape = np.shape(v)
+        if shape == (3, self.length):
             vec2d = np.asanyarray(v, dtype=np.float, order='F')
             for i in range(self.length):
                 quaternion_rotate_frame(&self.values[i],
-                    <double *> &vec2d[i, 0], <double *> &result[0, i])
-        else:
-            assert np.shape(v) == (3,), "Vector must have length 3"
+                    <double *> &vec2d[0, i], <double *> &result[0, i])
+            return result.view(type(vec2d))
+        elif shape == (3, 1):
+            vec2d = np.asanyarray(v, dtype=np.float, order='F')
+            for i in range(self.length):
+                quaternion_rotate_frame(&self.values[i],
+                    <double *> &vec2d[0, 0], <double *> &result[0, i])
+            return result.view(type(vec2d))
+        elif shape == (3,):
             vec1d = np.asanyarray(v, dtype=float, order='C')
             for i in range(self.length):
                 quaternion_rotate_frame(&self.values[i],
                     <double *> &vec1d[0], <double *> &result[0, i])
-        return result
+            return result.view(type(vec1d))
+        else:
+            raise TypeError, "Vector(s) must have shape (3), (3, 1) or (3, N) to rotate by N quaternions" 
 
     # Conversions to and from other rotation formats.
 
