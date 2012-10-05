@@ -65,6 +65,8 @@ cdef extern from "quaternion.h":
     void quaternion_rotate_frame(quaternion *q, double v[3], double r[3])
     void quaternion_from_euler(char *order, double angles[3], quaternion *r)
     void quaternion_to_euler(quaternion *q, char *order, double r[3])
+    void quaternion_from_vector(double v[3], quaternion *r)
+    void quaternion_to_vector(quaternion *q, double r[3])
 
 cdef class Quaternion:
 
@@ -411,6 +413,20 @@ cdef class Quaternion:
     def to_euler(Quaternion self, char *order):
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] result = np.zeros(len(order))
         quaternion_to_euler(self.value, order, <double *> &result[0])
+        return result
+
+    @classmethod
+    def from_vector(cls, vector):
+        cdef Quaternion result = Quaternion()
+        assert np.size(vector) == 3
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] vec = np.asanyarray(
+            vector, dtype=np.float, order='C').reshape(3)
+        quaternion_from_vector(<double *> &vec[0], result.value)
+        return result
+
+    def to_vector(Quaternion self):
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] result = np.empty(3)
+        quaternion_to_vector(self.value, <double *> &result[0])
         return result
 
 cdef class QuaternionArray:
@@ -1026,4 +1042,21 @@ cdef class QuaternionArray:
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] result = np.zeros((self.length, len(order)))
         for i in range(self.length):
             quaternion_to_euler(&self.values[i], order, <double *> &result[i, 0])
+        return result
+
+    @classmethod
+    def from_vector(cls, vector):
+        shape = np.shape(vector)
+        assert len(shape) == 2 and shape[0] == 3, "Vectors must have shape (3, N)"
+        cdef QuaternionArray result = QuaternionArray.empty(shape[1])
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] vec = np.asanyarray(
+            vector, dtype=np.float, order='F')
+        for i in range(result.length):
+            quaternion_from_vector(<double *> &vec[0, i], &result.values[i])
+        return result
+
+    def to_vector(QuaternionArray self):
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] result = np.empty((3, self.length), order='F')
+        for i in range(self.length):
+            quaternion_to_vector(&self.values[i], <double *> &result[0, i])
         return result

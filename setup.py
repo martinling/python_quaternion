@@ -44,7 +44,7 @@ try:
         packages = ['quaternion'],
         ext_modules = [
             Extension("quaternion",
-                ['quaternion/__init__.c', 'quaternion/quaternion.c'])]
+                ['quaternion/__init__.c', 'quaternion/quaternion.c', 'quaternion/sinc.c'])]
     )
 except ImportError as ex:
     print "Setuptools must be installed."

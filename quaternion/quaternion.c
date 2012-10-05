@@ -35,6 +35,7 @@
 #include "quaternion.h"
 #include "math.h"
 #include "ctype.h"
+#include "sinc.h"
 
 #define _QUAT_EPS 1e-6
 
@@ -383,4 +384,26 @@ quaternion_to_euler(const quaternion *q, const char *order, double r[3])
          r[i] -= 2 * M_PI;
       else if (r[i] < -M_PI)
          r[i] += 2 * M_PI;
+}
+
+void
+quaternion_from_vector(const double v[3], quaternion *r)
+{
+    double norm = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    double half_angle = 0.5 * norm;
+    double scale = 0.5 * sinc(half_angle);
+    r->w = cos(half_angle),
+    r->x = v[0] * scale,
+    r->y = v[1] * scale,
+    r->z = v[2] * scale;
+}
+
+void
+quaternion_to_vector(const quaternion *q, double r[3])
+{
+    double half_angle = acos(q->w);
+    double scale = 0.5 * sinc(half_angle);
+    r[0] = q->x / scale,
+    r[1] = q->y / scale,
+    r[2] = q->z / scale;
 }
