@@ -35,17 +35,22 @@
 try:
     from setuptools import setup
     from setuptools.extension import Extension
-    setup(
-        name = "quaternion",
-        version = "0.8",
-        author = "Martin Ling",
-        license = "BSD",
-        url = "http://github.com/martinling/python_quaternion/",
-        packages = ['quaternion'],
-        ext_modules = [
-            Extension("quaternion",
-                ['quaternion/__init__.c', 'quaternion/quaternion.c', 'quaternion/sinc.c'])]
-    )
+    try:
+        import numpy
+        setup(
+            name = "quaternion",
+            version = "0.8",
+            author = "Martin Ling",
+            license = "BSD",
+            url = "http://github.com/martinling/python_quaternion/",
+            packages = ['quaternion'],
+            include_dirs = [numpy.get_include()],
+            ext_modules = [
+                Extension("quaternion",
+                    ['quaternion/__init__.c', 'quaternion/quaternion.c', 'quaternion/sinc.c'])]
+        )
+    except ImportError:
+        print "Numpy must be installed."
 except ImportError as ex:
     print "Setuptools must be installed."
     print "See http://pypi.python.org/pypi/setuptools"
