@@ -1039,9 +1039,10 @@ cdef class QuaternionArray:
         return result
 
     def to_euler(QuaternionArray self, char *order):
-        cdef np.ndarray[np.float_t, ndim=2, mode='c'] result = np.zeros((self.length, len(order)))
+        cdef np.ndarray[np.float_t, ndim=2, mode='fortran'] result
+        result = np.zeros((len(order), self.length), order='F')
         for i in range(self.length):
-            quaternion_to_euler(&self.values[i], order, <double *> &result[i, 0])
+            quaternion_to_euler(&self.values[i], order, <double *> &result[0, i])
         return result
 
     @classmethod
