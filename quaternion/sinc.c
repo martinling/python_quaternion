@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <math.h>
 #include <float.h>
 
@@ -8,7 +7,7 @@ sinc(double x)
     const double taylor_0_bound = DBL_EPSILON;
     const double taylor_2_bound = sqrt(taylor_0_bound);
     const double taylor_n_bound = sqrt(taylor_2_bound);
-    double abs_x = abs(x);
+    double abs_x = fabs(x);
     if (abs_x >= taylor_n_bound) {
         return sin(x) / x;
     } else {
