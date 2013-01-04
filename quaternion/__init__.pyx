@@ -1034,8 +1034,10 @@ cdef class QuaternionArray:
             "Angles must have shape (N, len(order))"
         cdef QuaternionArray result = QuaternionArray.empty(shape[0])
         cdef np.ndarray[np.float_t, ndim=2, mode='c'] ang = np.asanyarray(angles, dtype=np.float)
+        cdef np.ndarray[np.float_t, ndim=1, mode='c'] ang_i
         for i in range(len(angles)):
-            quaternion_from_euler(order, <double *> &ang[i, 0], &result.values[i])
+            ang_i = ang[i]
+            quaternion_from_euler(order, <double *> &ang_i[0], &result.values[i])
         return result
 
     def to_euler(QuaternionArray self, char *order):
