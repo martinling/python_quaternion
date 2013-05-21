@@ -855,6 +855,14 @@ cdef class QuaternionArray:
             return NotImplemented
         return result
 
+    def cumprod(QuaternionArray self):
+        """ Cumulative product of these quaternions. """
+        cdef QuaternionArray result = QuaternionArray.like(self)
+        result[0] = self[0]
+        for i in range(1, self.length):
+            quaternion_multiply(&result.values[i - 1], &self.values[i], &result.values[i])
+        return result
+
     # In-place arithmetic (modifies existing instance)
 
     def __iadd__(QuaternionArray self, other):
