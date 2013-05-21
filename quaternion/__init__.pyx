@@ -971,7 +971,7 @@ cdef class QuaternionArray:
                 1 / quaternion_magnitude(&self.values[i]), &self.values[i])
         return self
 
-    def negate(Quaternion self):
+    def negate(QuaternionArray self):
         """ Negate these quaternions. """
         for i in range(self.length):
             quaternion_negative(&self.values[i], &self.values[i])
