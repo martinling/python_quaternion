@@ -77,6 +77,7 @@ void quaternion_from_euler(const char *order, double angles[3], quaternion *r);
 void quaternion_to_euler(const quaternion *q, const char *order, double r[3]);
 void quaternion_from_vector(const double v[3], quaternion *r);
 void quaternion_to_vector(const quaternion *q, double r[3]);
+void quaternion_from_matrix(const double m[3][3], quaternion *r);
 
 #ifdef __cplusplus
 }

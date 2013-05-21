@@ -407,3 +407,41 @@ quaternion_to_vector(const quaternion *q, double r[3])
     r[1] = q->y / scale,
     r[2] = q->z / scale;
 }
+
+void quaternion_from_matrix(const double m[3][3], quaternion *r)
+{
+    float trace = m[0][0] + m[1][1] + m[2][2];
+
+    if (trace > 0)
+    {
+        float s = 0.5 / sqrt(trace + 1);
+        r->w = 0.25 / s;
+        r->x = ( m[2][1] - m[1][2] ) * s;
+        r->y = ( m[0][2] - m[2][0] ) * s;
+        r->z = ( m[1][0] - m[0][1] ) * s;
+    }
+    else if (m[0][0] > m[1][1] && m[0][0] > m[2][2])
+    {
+        float s = 2 * sqrt(1 + m[0][0] - m[1][1] - m[2][2]);
+        r->w = (m[2][1] - m[1][2] ) / s;
+        r->x = 0.25 * s;
+        r->y = (m[0][1] + m[1][0] ) / s;
+        r->z = (m[0][2] + m[2][0] ) / s;
+    }
+    else if (m[1][1] > m[2][2])
+    {
+        float s = 2 * sqrt(1 + m[1][1] - m[0][0] - m[2][2]);
+        r->w = (m[0][2] - m[2][0] ) / s;
+        r->x = (m[0][1] + m[1][0] ) / s;
+        r->y = 0.25 * s;
+        r->z = (m[1][2] + m[2][1] ) / s;
+    }
+    else
+    {
+        float s = 2 * sqrt(1 + m[2][2] - m[0][0] - m[1][1]);
+        r->w = (m[1][0] - m[0][1] ) / s;
+        r->x = (m[0][2] + m[2][0] ) / s;
+        r->y = (m[1][2] + m[2][1] ) / s;
+        r->z = 0.25 * s;
+   }
+}

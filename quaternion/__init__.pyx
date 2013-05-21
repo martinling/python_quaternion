@@ -67,6 +67,7 @@ cdef extern from "quaternion.h":
     void quaternion_to_euler(quaternion *q, char *order, double r[3])
     void quaternion_from_vector(double v[3], quaternion *r)
     void quaternion_to_vector(quaternion *q, double r[3])
+    void quaternion_from_matrix(double m[3][3], quaternion *r)
 
 cdef class Quaternion:
 
@@ -427,6 +428,15 @@ cdef class Quaternion:
     def to_vector(Quaternion self):
         cdef np.ndarray[np.float_t, ndim=1, mode='c'] result = np.empty(3)
         quaternion_to_vector(self.value, <double *> &result[0])
+        return result
+
+    @classmethod
+    def from_matrix(cls, matrix):
+        cdef Quaternion result = Quaternion()
+        assert np.shape(matrix) == (3, 3)
+        cdef np.ndarray[np.float_t, ndim=2, mode='c'] mat = np.asanyarray(
+            matrix, dtype=np.float, order='C')
+        quaternion_from_matrix(<double (*)[3]> &mat[0,0], result.value)
         return result
 
 cdef class QuaternionArray:
