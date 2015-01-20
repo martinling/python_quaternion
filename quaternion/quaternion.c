@@ -42,7 +42,7 @@
 int
 quaternion_isnonzero(const quaternion *q)
 {
-    return q->w != 0 && q->x != 0 && q->y != 0 && q->z != 0;
+    return q->w != 0 || q->x != 0 || q->y != 0 || q->z != 0;
 }
 
 int
@@ -54,7 +54,7 @@ quaternion_isnan(const quaternion *q)
 int
 quaternion_isinf(const quaternion *q)
 {
-    return isinf(q->w) || isinf(q->x) || isinf(q->y) || isnan(q->z);
+    return isinf(q->w) || isinf(q->x) || isinf(q->y) || isinf(q->z);
 }
 
 int
